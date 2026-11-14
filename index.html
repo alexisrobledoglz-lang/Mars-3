@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MARS 30</title>
+<style>
+:root{--line:#4a2c20;--line2:#6a3a26;--btn:#5a3324;--sel:#4a2a1d;--glow:#7a2a12;--deep:#120a08;--bg:#1b0f0c;--panel:#2a1913;--panel2:#3a2219;--ink:#fff3ea;--muted:#d8b8a6;--accent:#ff8a3d;--good:#4cd37a;--bad:#ff5a5a;--warn:#ffd23d;--o2:#57c7ff;--food:#7fe07a;--rad:#ff6bd6;--sci:#ffd23d}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 80% -10%,var(--glow) 0,var(--bg) 55%);background-color:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Roboto,Arial,sans-serif;min-height:100vh}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+h1{margin:4px 0 0;font-size:30px;letter-spacing:.02em}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:2px 0 14px}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.card h2{margin:0 0 8px;font-size:17px;color:var(--accent)}
+.stat{margin:8px 0}
+.stat .top{display:flex;justify-content:space-between;font-size:14px}
+.bar{height:14px;background:var(--deep);border-radius:8px;overflow:hidden;margin-top:3px}
+.bar i{display:block;height:100%;border-radius:8px;transition:width .4s}
+.row{display:flex;align-items:center;gap:8px;margin:9px 0;padding:8px;background:var(--panel2);border-radius:10px}
+.row .ico{font-size:24px;width:32px;text-align:center}
+.row .lab{flex:1;font-size:14px}
+.row .lab small{display:block;color:var(--muted);font-size:12px}
+.row button{width:34px;height:34px;border-radius:50%;border:0;background:var(--btn);color:var(--ink);font-size:20px;cursor:pointer}
+.row button:hover{background:var(--accent);color:#1b0f0c}
+.row .n{width:26px;text-align:center;font-size:20px;font-weight:bold}
+.energy{font-size:15px;margin:6px 0 2px}
+.energy b{font-size:22px;color:var(--warn)}
+.go{width:100%;padding:13px;border:0;border-radius:12px;background:var(--accent);color:#1b0f0c;font-size:18px;font-weight:bold;cursor:pointer;margin-top:6px}
+.go:disabled{opacity:.5;cursor:not-allowed}
+.alert{background:#4a1530;border:2px solid var(--rad);border-radius:12px;padding:10px;margin-bottom:10px;font-size:14px}
+.alert.dust{background:#3d3214;border-color:var(--warn)}
+#alerts{height:132px;overflow-y:auto;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+#alerts .alert{margin:0;padding:8px 10px;font-size:13.5px;flex-shrink:0}
+.alert.calm{background:var(--panel2);border-color:var(--line2);color:var(--muted);flex:1;display:flex;align-items:center;justify-content:center;text-align:center}
+.log{max-height:260px;overflow:auto;font-size:13px;line-height:1.45}
+.log p{margin:0 0 6px;padding-bottom:6px;border-bottom:1px dashed var(--line)}
+.goal{font-size:14px;color:var(--muted)}
+.goal b{color:var(--sci)}
+.word{border-bottom:1px dotted var(--muted);cursor:help}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.modal .box{background:var(--panel);border:2px solid var(--accent);border-radius:16px;max-width:560px;width:100%;padding:18px;max-height:90vh;overflow:auto}
+.modal h2{margin-top:0;color:var(--accent)}
+.choice{display:block;width:100%;text-align:left;margin:8px 0;padding:12px;border-radius:12px;border:2px solid var(--line2);background:var(--panel2);color:var(--ink);font-size:15px;cursor:pointer}
+.choice.on{border-color:var(--accent);background:var(--sel);box-shadow:0 0 0 2px var(--accent) inset}
+.picks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.picks .choice{margin:0}
+.choice:hover{border-color:var(--accent);background:var(--sel)}
+.choice small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.tip{background:var(--panel2);border-left:4px solid var(--warn);padding:8px 10px;border-radius:8px;margin:8px 0;font-size:14px}
+.src{font-size:12px;color:var(--muted);line-height:1.5}
+.src a{color:var(--muted)}
+footer{margin-top:14px}
+.scene{padding:0;overflow:hidden;margin-bottom:14px;border:2px solid var(--line2)}
+.scene svg{display:block;width:100%;height:auto}
+.row.c-oxy{border-left:5px solid var(--o2)} .row.c-food{border-left:5px solid var(--food)}
+.row.c-shield{border-left:5px solid #7aa8ff} .row.c-explore{border-left:5px solid var(--sci)}
+.row.c-oxy button:hover{background:var(--o2)} .row.c-food button:hover{background:var(--food)}
+.row.c-shield button:hover{background:#7aa8ff} .row.c-explore button:hover{background:var(--sci)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes walk{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(-120px)}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.8}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bob{animation:bob 2.2s ease-in-out infinite}
+.walk{animation:walk .9s ease-in-out infinite}
+.dust{animation:drift 3s linear infinite}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.lang{display:flex;background:var(--panel);border:2px solid var(--line2);border-radius:999px;overflow:hidden;flex-shrink:0;margin-top:8px}
+.lang button{border:0;background:none;color:var(--ink);padding:7px 12px;font-size:14px;font-weight:bold;cursor:pointer}
+.lang button.on{background:var(--accent);color:#1b0f0c}
+
+[hidden]{display:none!important}
+#trans{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(circle,#10142a 0,#02030a 70%);cursor:pointer}
+#trans.on{display:flex;animation:fadeio 1.9s ease forwards}
+#trans svg{width:min(92vw,520px);height:auto}
+#trans .cap{color:#fff3ea;font-size:22px;font-weight:bold;margin-top:6px;text-align:center}
+#trans .fact{color:#a9b6d6;font-size:14px;margin-top:4px;text-align:center;padding:0 16px}
+@keyframes fadeio{0%{opacity:0}12%{opacity:1}85%{opacity:1}100%{opacity:0}}
+@keyframes orbit{to{transform:rotate(360deg)}}
+.orb{transform-origin:260px 200px;animation:orbit linear infinite}
+.sunspin{transform-origin:260px 200px;animation:spin 4s linear infinite}
+@media (prefers-reduced-motion:reduce){.orb,.sunspin{animation:none}#trans.on{animation:none}}
+body.moon{--bg:#0a0e1c;--panel:#141b30;--panel2:#1d2744;--ink:#eef3ff;--muted:#a9b6d6;--accent:#8fb8ff;--line:#2a3658;--line2:#3b4c7c;--btn:#2b3b68;--sel:#24345e;--glow:#2a3a80;--deep:#070a14}
+body{transition:background .5s}
+.tabs{display:flex;gap:6px;margin:0 0 10px}
+.tabs button{border:2px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:999px;padding:8px 16px;font-size:15px;font-weight:bold;cursor:pointer}
+.tabs button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.guide .g{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.guide .g h3{margin:0 0 6px;font-size:16px;color:var(--accent)}
+.guide .g p{margin:4px 0;font-size:14px;line-height:1.45}
+.guide .g .real{font-size:12px;color:var(--muted)}
+.introLang{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.introLang button{flex:1;padding:10px;border-radius:12px;border:2px solid var(--line2);background:var(--panel2);color:var(--ink);font-size:16px;font-weight:bold;cursor:pointer}
+.introLang button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><div><h1 id="title">MARS <span>30</span> 🦖🚀</h1>
+  <p class="sub" data-i="sub">A game by Team <b>Pi-Rex</b>. Keep 4 dino astronauts alive for 30 <span class="word" title="A sol is one day on Mars. It lasts 24 hours and 39 minutes.">sols</span> and do real science. Every choice has a cost!</p></div>
+  <div class="lang"><button id="lang_en" onclick="setLang('en')">🇺🇸 EN</button><button id="lang_es" onclick="setLang('es')">🇲🇽 ES</button></div></div>
+
+  <div class="tabs"><button id="tab_game" class="on" onclick="showTab('game')">🎮 <span id="tabGameTxt">Game</span></button><button id="tab_guide" onclick="showTab('guide')">📖 <span id="tabGuideTxt">How it works</span></button></div>
+  <div id="guideView" class="guide" hidden></div>
+  <div id="gameView">
+  <div class="card scene"><svg id="scene" viewBox="0 0 960 300" role="img" aria-label="The Mars base and its 4 astronauts"></svg></div>
+
+  <div class="grid">
+    <div class="card">
+      <div id="alerts"></div>
+      <h2 id="dayTitle">Sol 1 of 30</h2>
+      <div class="energy"><span data-i="energy">⚡ Solar energy today:</span> <b id="eLeft">10</b> <span data-i="leftof">left of</span> <span id="eTotal">10</span></div>
+
+      <div class="row c-oxy"><div class="ico">🫁</div><div class="lab" data-i="r_oxy">Make oxygen<small>1 ⚡ = 0.6 kg of oxygen. The crew breathes 3.36 kg per sol.</small></div>
+        <button onclick="change('oxy',-1)">−</button><div class="n" id="n_oxy">0</div><button onclick="change('oxy',1)">+</button></div>
+      <div class="row c-food"><div class="ico">🥬</div><div class="lab" data-i="r_food">Greenhouse<small>1 ⚡ = 2 meals. The crew eats 4 meals per sol.</small></div>
+        <button onclick="change('food',-1)">−</button><div class="n" id="n_food">0</div><button onclick="change('food',1)">+</button></div>
+      <div class="row c-shield"><div class="ico">🛡️</div><div class="lab" data-i="r_shield">Radiation shield<small>Each ⚡ blocks 25% of today's radiation (max 3).</small></div>
+        <button onclick="change('shield',-1)">−</button><div class="n" id="n_shield">0</div><button onclick="change('shield',1)">+</button></div>
+      <div class="row c-explore"><div class="ico">🔭</div><div class="lab" data-i="r_explore">Explore Mars<small>1 ⚡ = 1 point, 2 ⚡ = 3 points, 3 ⚡ = 5 points!</small></div>
+        <button onclick="change('explore',-1)">−</button><div class="n" id="n_explore">0</div><button onclick="change('explore',1)">+</button></div>
+
+      <button class="go" id="goBtn" onclick="endSol()" data-i="endsol">End sol ➜</button>
+    </div>
+
+    <div class="card">
+      <h2 data-i="status">Base status</h2>
+      <div class="stat"><div class="top"><span data-i="s_oxy">🫁 Oxygen tank</span><span id="t_oxy"></span></div><div class="bar"><i id="b_oxy" style="background:var(--o2)"></i></div></div>
+      <div class="stat"><div class="top"><span data-i="s_food">🥬 Food storage</span><span id="t_food"></span></div><div class="bar"><i id="b_food" style="background:var(--food)"></i></div></div>
+      <div class="stat"><div class="top"><span data-i="s_rad">☢️ <span class="word" title="Radiation dose: how much space radiation the body has absorbed. It is measured in millisieverts (mSv).">Radiation dose</span></span><span id="t_rad"></span></div><div class="bar"><i id="b_rad" style="background:var(--rad)"></i></div></div>
+      <div class="stat"><div class="top"><span data-i="s_sci">🔬 Science points</span><span id="t_sci"></span></div><div class="bar"><i id="b_sci" style="background:var(--sci)"></i></div></div>
+      <p class="goal" id="goal"></p>
+      <h2 data-i="logt">Mission log</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  </div>
+  <footer class="card src" data-i="footer">
+    <b>Real NASA science in this game:</b>
+    Normal radiation on Mars (0.67 mSv per day) was measured by the Curiosity rover's RAD instrument
+    (<a href="https://www.swri.org/press-release/swri-scientists-publish-first-radiation-measurements-surface-mars" target="_blank">SwRI / Science, 2013</a>).
+    Solar storm alerts use real flares from 2024, the year the Sun reached solar maximum (NASA's space weather database DONKI;
+    <a href="https://www.space.com/the-universe/sun/10-most-powerful-solar-flares-of-2024" target="_blank">list of 2024 flares</a>).
+    The storm dose is based on Curiosity's biggest reading ever: 8.1 milligrays on May 20, 2024, about 30 chest X-rays
+    (<a href="https://phys.org/news/2024-06-nasa-mars-epic-solar-storm.html" target="_blank">NASA / Phys.org</a>).
+    An astronaut breathes about 0.84 kg of oxygen per day (NASA Life Support Baseline Values).
+    Dust storms really can cover solar panels: the Opportunity rover lost power in a 2018 dust storm.
+    <br><b>Game rules (not NASA data):</b> energy per sol, how much each ⚡ makes, the shield strength, points and the 40 mSv limit are game rules we chose and balanced with a math simulation.
+    <br>This game does not use live data: the storms come from a fixed list of real past flares.
+  </footer>
+</div>
+
+<div class="modal on" id="intro"><div class="box" id="introBox"></div></div>
+
+<div class="modal" id="end"><div class="box" id="endBox"></div></div>
+<div class="modal" id="pop"><div class="box" id="popBox"></div></div>
+<div id="trans" onclick="endTransition()"></div>
+
+<script>
+
+// ================= LANGUAGE (English / Español) =================
+let LANG = "en";
+let DEST = "mars", LEAD = 0;
+const T = (en, es) => W(LANG === "es" ? es : en);
+// On the Moon we count normal days, not sols
+function W(t){
+  if(DEST !== "moon" || typeof t !== "string") return t;
+  return t.replace("A sol is one day on Mars. It lasts 24 hours and 39 minutes.","On the Moon we count normal Earth days (24 hours).")
+   .replace("Un sol es un día en Marte. Dura 24 horas y 39 minutos.","En la Luna contamos días normales de la Tierra (24 horas).")
+   .replace(/\bSol (\d)/g, LANG==="es"?"Día $1":"Day $1").replace(/\bSols\b/g,"Days").replace(/\bsols\b/g,"days").replace(/\bsol\b/g, LANG==="es"?"día":"day")
+   .replace(/\bSoles\b/g,"Días").replace(/\bsoles\b/g,"días")
+   .replace(/Explore Mars/g,"Explore the Moon").replace(/ on Mars/g," on the Moon").replace(/reaches Mars/g,"reaches the Moon").replace(/hitting Mars/g,"hitting the Moon")
+   .replace(/Explorar Marte/g,"Explorar la Luna").replace(/ en Marte/g," en la Luna").replace(/ a Marte/g," a la Luna");
+}
+const ES = {
+  sub: 'Un juego del equipo <b>Pi-Rex</b>. Mantén vivos a 4 dino-astronautas durante 30 <span class="word" title="Un sol es un día en Marte. Dura 24 horas y 39 minutos.">soles</span> y haz ciencia de verdad. ¡Cada decisión tiene un costo!',
+  energy: '⚡ Energía solar de hoy:',
+  leftof: 'quedan de',
+  r_oxy: 'Fabricar oxígeno<small>1 ⚡ = 0.6 kg de oxígeno. La tripulación respira 3.36 kg por sol.</small>',
+  r_food: 'Invernadero<small>1 ⚡ = 2 comidas. La tripulación come 4 comidas por sol.</small>',
+  r_shield: 'Escudo contra radiación<small>Cada ⚡ bloquea 25% de la radiación de hoy (máx. 3).</small>',
+  r_explore: 'Explorar Marte<small>1 ⚡ = 1 punto, 2 ⚡ = 3 puntos, ¡3 ⚡ = 5 puntos!</small>',
+  endsol: 'Terminar sol ➜',
+  status: 'Estado de la base',
+  s_oxy: '🫁 Tanque de oxígeno', s_food: '🥬 Comida guardada',
+  s_rad: '☢️ <span class="word" title="Dosis de radiación: cuánta radiación espacial ha absorbido el cuerpo. Se mide en milisieverts (mSv).">Dosis de radiación</span>',
+  s_sci: '🔬 Puntos de ciencia',
+  logt: 'Bitácora de la misión',
+  footer: `<b>Ciencia real de la NASA en este juego:</b>
+    La radiación normal en Marte (0.67 mSv por día) la midió el instrumento RAD del rover Curiosity
+    (<a href="https://www.swri.org/press-release/swri-scientists-publish-first-radiation-measurements-surface-mars" target="_blank">SwRI / Science, 2013</a>).
+    Las alertas de tormenta usan llamaradas solares reales de 2024, el año del máximo solar (base de datos de clima espacial DONKI de la NASA;
+    <a href="https://www.space.com/the-universe/sun/10-most-powerful-solar-flares-of-2024" target="_blank">lista de llamaradas de 2024</a>).
+    La dosis de tormenta se basa en la lectura más alta de Curiosity: 8.1 miligrays el 20 de mayo de 2024, como 30 radiografías de tórax
+    (<a href="https://phys.org/news/2024-06-nasa-mars-epic-solar-storm.html" target="_blank">NASA / Phys.org</a>).
+    Un astronauta respira unos 0.84 kg de oxígeno al día (NASA Life Support Baseline Values).
+    Las tormentas de polvo de verdad tapan los paneles solares: el rover Opportunity se quedó sin energía en una tormenta de polvo en 2018.
+    <br><b>Reglas del juego (no son datos de la NASA):</b> la energía por sol, lo que produce cada ⚡, la fuerza del escudo, los puntos y el límite de 40 mSv son reglas que elegimos y balanceamos con una simulación matemática.
+    <br>Este juego no usa datos en vivo: las tormentas vienen de una lista fija de llamaradas reales del pasado.`
+
+};
+const EN = {};
+document.querySelectorAll('[data-i]').forEach(el => EN[el.dataset.i] = el.innerHTML);
+function setLang(l){
+  LANG = l;
+  try { localStorage.setItem('mars30_lang', l); } catch(e) {}
+  document.documentElement.lang = l;
+  document.querySelectorAll('[data-i]').forEach(el => { const h = (l === 'es' ? ES : EN)[el.dataset.i]; el.innerHTML = el.dataset.i === 'footer' ? h + moonNote() : W(h); });
+  document.getElementById('title').innerHTML = DEST === 'moon' ? 'MOON <span>30</span> 🦖🌕' : 'MARS <span>30</span> 🦖🚀';
+  const ro = document.querySelector('[data-i="r_oxy"]'); if (ro && CONFIG.o2PerEnergy !== 0.6) ro.innerHTML = ro.innerHTML.replace('0.6 kg', CONFIG.o2PerEnergy+' kg');
+  document.getElementById('tabGameTxt').textContent = T('Game','Juego');
+  document.getElementById('tabGuideTxt').textContent = T('How it works','Cómo funciona');
+  renderGuide();
+  if (document.getElementById('intro').classList.contains('on')) showIntro();
+  document.getElementById('lang_en').classList.toggle('on', l === 'en');
+  document.getElementById('lang_es').classList.toggle('on', l === 'es');
+  if (S) render();
+}
+
+// ================= CONFIG: game rules (change these to balance the game) =================
+const CONFIG = {
+  sols: 30,
+  crew: 4,
+  o2PerPerson: 0.84,      // kg per day (NASA baseline value)
+  o2PerEnergy: 0.6,       // game rule
+  mealsPerPerson: 1,      // game rule: 1 meal-pack per person per sol
+  mealsPerEnergy: 2,      // game rule
+  shieldPerEnergy: 0.25,  // each energy blocks 25% of today's radiation
+  shieldMax: 3,
+  exploreMax: 3,
+  explorePoints: [0, 1, 3, 5],   // 0,1,2,3 energy -> points
+  normalDose: 0.67,       // mSv per sol (Curiosity RAD)
+  stormDose: 8.1,         // based on 8.1 mGy on 20 May 2024 (treated as mSv in this game)
+  doseLimit: 40,          // game rule
+  start: {oxy: 7, food: 8},
+  maxOxy: 30, maxFood: 24,
+  energyNormal: 10, energyDust: 7,
+  dustChance: 0.12,
+  storms: 3,              // storms per game
+  dilemmaChance: 0.22,    // chance of a surprise dilemma each sol
+  quizBonus: 2,           // science points for a right math answer
+  // Tired dinos (game rules)
+  hpSleep: 3,         // a dino that stays in the base sleeps well: +3 health per day
+  hpExplore: 8,       // exploring is tiring: −8 health
+  hpPerMSv: 3,        // radiation makes them sick: −3 health per mSv received
+  hpHungry: 8,        // low oxygen or food makes everyone weaker
+  hpRest: 20,         // a day in the sickbay heals this much (+10 with the doctor)
+  hpSick: 35, hpBack: 80,   // go to the sickbay below 35, back to work at 80
+  sickPenalty: 1,     // each dino in the sickbay = 1 ⚡ less (fewer hands to run the base)
+  reports: [6, 15, 26, 38, 51, 66] // cumulative science points needed on sols 5,10,15,20,25,30
+};
+
+// ================= DESTINATIONS (real data for each place) =================
+const DESTS = {
+  mars: {normalDose:0.67, stormDose:8.1, doseLimit:40, lowEnergy:7, lowChance:0.12},   // Curiosity RAD
+  moon: {normalDose:1.37, stormDose:12,  doseLimit:50, lowEnergy:6, lowChance:0.15}    // Chang'e 4 LND: 1,369 µSv/day
+};
+// ================= SPECIALISTS (choose one leader) =================
+const SPECS = [
+  {i:0, ico:"🔧", en:["Engineer","Oxygen machine works better: 1 ⚡ = 0.7 kg of O₂."], es:["Ingeniero","La máquina de oxígeno rinde más: 1 ⚡ = 0.7 kg de O₂."]},
+  {i:1, ico:"🌱", en:["Botanist","With 2 ⚡ or more in the greenhouse: +1 extra meal."], es:["Botánico","Con 2 ⚡ o más en el invernadero: +1 comida extra."]},
+  {i:2, ico:"🩺", en:["Doctor","Keeps the crew healthy: −15% radiation every day."], es:["Doctora","Cuida a la tripulación: −15% de radiación cada día."]},
+  {i:3, ico:"🪨", en:["Geologist","Finds more things when exploring, and 3 ⚡ give 6 points."], es:["Geóloga","Encuentra más cosas al explorar, y 3 ⚡ dan 6 puntos."]}
+];
+function moonNote(){
+  if(DEST !== "moon") return "";
+  return LANG === "es"
+   ? `<br><b>🌕 Datos de la Luna:</b> en la superficie lunar la radiación es de 1.37 mSv por día, medida por la sonda china Chang'e 4 (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), como el doble que en Marte, porque la Luna no tiene aire. La base está en el polo sur, como las misiones Artemis: ahí las montañas a veces tapan el Sol, y los cráteres siempre en sombra guardan hielo (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). La dosis de tormenta en la Luna (12 mSv) es una regla del juego.`
+   : `<br><b>🌕 Moon data:</b> radiation on the lunar surface is 1.37 mSv per day, measured by China's Chang'e 4 lander (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), about twice Mars, because the Moon has no air. The base is at the south pole, like the Artemis missions: there, mountains sometimes block the Sun, and craters in permanent shadow hold ice (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). The Moon storm dose (12 mSv) is a game rule.`;
+}
+let pickDest = "mars", pickLead = 0;
+function showIntro(){
+  document.getElementById('intro').classList.add('on');
+  const sp = SPECS.map(x=>`<button class="choice ${pickLead===x.i?'on':''}" onclick="pickLead=${x.i};showIntro()"><b>${x.ico} ${CREW[x.i].name}: ${T(x.en[0],x.es[0])}</b><small>${T(x.en[1],x.es[1])}</small></button>`).join("");
+  document.getElementById('introBox').innerHTML = `<div class="introLang"><button class="${LANG==='en'?'on':''}" onclick="setLang('en')">🇺🇸 English</button><button class="${LANG==='es'?'on':''}" onclick="setLang('es')">🇲🇽 Español</button></div>` + T(`<h2>Welcome, Commander! 🦖</h2>
+   <p>You lead <b>4 dino astronauts</b>: Pi, Tau, Sigma and Delta! The mission lasts <b>30 days</b>. Every day your solar panels give you about <b>10 energy ⚡</b> to share between oxygen, food, the radiation shield and exploring. <b>It is never enough for everything!</b></p>
+   <p>❤️ Each dino has a <b>health bar</b>. Radiation, hunger and exploring make them tired. A tired dino goes to the <b>sickbay</b> and you get less energy!</p>
+   <p>🔬 NASA wants a <b>science report every 5 days</b>. ☀️ When NASA sees a <b>solar flare</b>, you get a warning one day before.</p>
+   <h3>1. Where do you go?</h3>`,
+   `<h2>¡Bienvenido, Comandante! 🦖</h2>
+   <p>Diriges a <b>4 dino-astronautas</b>: ¡Pi, Tau, Sigma y Delta! La misión dura <b>30 días</b>. Cada día tus paneles solares te dan unos <b>10 de energía ⚡</b> para repartir entre oxígeno, comida, el escudo contra radiación y explorar. <b>¡Nunca alcanza para todo!</b></p>
+   <p>❤️ Cada dino tiene una <b>barra de salud</b>. La radiación, el hambre y explorar los cansan. Un dino cansado va a la <b>enfermería</b> y ¡tienes menos energía!</p>
+   <p>🔬 La NASA quiere un <b>informe de ciencia cada 5 días</b>. ☀️ Cuando la NASA ve una <b>llamarada solar</b>, te avisa un día antes.</p>
+   <h3>1. ¿A dónde vas?</h3>`)
+   + `<div class="picks">
+      <button class="choice ${pickDest==='mars'?'on':''}" onclick="pickDest='mars';showIntro()"><b>🔴 ${T("Mars","Marte")}</b><small>${T("Thin air blocks some radiation (0.67 mSv/day), but dust storms cover your panels.","El aire delgado frena algo de radiación (0.67 mSv/día), pero hay tormentas de polvo que tapan tus paneles.")}</small></button>
+      <button class="choice ${pickDest==='moon'?'on':''}" onclick="pickDest='moon';showIntro()"><b>🌕 ${T("The Moon (harder)","La Luna (más difícil)")}</b><small>${T("No air: twice the radiation (1.37 mSv/day). At the south pole, mountains sometimes hide the Sun.","Sin aire: el doble de radiación (1.37 mSv/día). En el polo sur, las montañas a veces tapan el Sol.")}</small></button></div>`
+   + `<h3>${T("2. Choose your mission specialist","2. Elige a tu especialista")}</h3><div class="picks">${sp}</div>`
+   + `<button class="go" onclick="startMission()">${T("Start mission 🚀","Empezar misión 🚀")}</button>`
+   + `<p style="text-align:center;font-size:13px;color:var(--muted)">${T("Tip: the 📖 How it works tab explains everything.","Tip: la pestaña 📖 Cómo funciona explica todo.")}</p>`;
+  document.body.classList.toggle('moon', pickDest==='moon');
+}
+function startMission(){
+  DEST = pickDest; LEAD = pickLead;
+  Object.assign(CONFIG, {normalDose:DESTS[DEST].normalDose, stormDose:DESTS[DEST].stormDose, doseLimit:DESTS[DEST].doseLimit,
+                         energyDust:DESTS[DEST].lowEnergy, dustChance:DESTS[DEST].lowChance,
+                         o2PerEnergy: LEAD===0 ? 0.7 : 0.6});
+  document.body.classList.toggle('moon', DEST==='moon');
+  closeModal('intro'); newGame(); setLang(LANG);
+}
+
+// Real solar flares from 2024 (NASA DONKI / solar cycle 25)
+const REAL_FLARES = [
+  {cls:"X9.0", date:["October 3, 2024","3 de octubre de 2024"]}, {cls:"X8.7", date:["May 14, 2024","14 de mayo de 2024"]},
+  {cls:"X7.1", date:["October 1, 2024","1 de octubre de 2024"]}, {cls:"X6.3", date:["February 22, 2024","22 de febrero de 2024"]},
+  {cls:"X5.8", date:["May 11, 2024","11 de mayo de 2024"]},    {cls:"X4.5", date:["September 14, 2024","14 de septiembre de 2024"]},
+  {cls:"X4.5", date:["May 6, 2024","6 de mayo de 2024"]},     {cls:"X3.9", date:["May 10, 2024","10 de mayo de 2024"]}
+];
+
+// Random things you can find while exploring
+const FINDS = [
+  {txt:["🧊 Your team found buried ice! You melt it and split the water: +3 kg oxygen.","🧊 ¡Tu equipo encontró hielo enterrado! Lo derriten y separan el agua: +3 kg de oxígeno."], fx:s=>s.oxy+=3},
+  {txt:["🪨 A strange layered rock! It might show Mars once had lakes: +2 science points.","🪨 ¡Una roca rara con capas! Quizá Marte tuvo lagos: +2 puntos de ciencia."], fx:s=>s.sci+=2},
+  {txt:["🌋 You found a lava tube, a natural cave that blocks radiation: −2 mSv for the crew.","🌋 Encontraste un tubo de lava, una cueva natural que bloquea la radiación: −2 mSv para la tripulación."], fx:s=>s.rad=Math.max(0,s.rad-2)},
+  {txt:["💨 A dusty wind scratched a space suit. Repairs cost 1 meal of time: −1 meal.","💨 Un viento con polvo rayó un traje espacial. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1}
+];
+
+const FINDS_MOON = [
+  {txt:["🧊 Your team found ice in a crater that never sees the Sun! You melt it and split the water: +3 kg oxygen.","🧊 ¡Tu equipo encontró hielo en un cráter que nunca ve el Sol! Lo derriten y separan el agua: +3 kg de oxígeno."], fx:s=>s.oxy+=3},
+  {txt:["🪨 A very old rock, more than 3,800 million years old! +2 science points.","🪨 ¡Una roca muy vieja, de más de 3,800 millones de años! +2 puntos de ciencia."], fx:s=>s.sci+=2},
+  {txt:["🌋 You found a lava tube, a natural cave that blocks radiation: −2 mSv for the crew.","🌋 Encontraste un tubo de lava, una cueva natural que bloquea la radiación: −2 mSv para la tripulación."], fx:s=>s.rad=Math.max(0,s.rad-2)},
+  {txt:["💨 Sharp moon dust scratched a space suit. Repairs cost time: −1 meal.","💨 El polvo lunar es filoso y rayó un traje. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1}
+];
+// ================= GAME STATE =================
+let S, plan;
+function rand(n){return Math.floor(Math.random()*n)}
+function newGame(){
+  S = {sol:1, oxy:CONFIG.start.oxy, food:CONFIG.start.food, rad:0, sci:0, over:false,
+       history:[], reportsMissed:0, reportsMade:0, alive:true, cause:"",
+       stormSols:[], dustSols:[], flares:[], hp:[100,100,100,100], resting:[false,false,false,false], restDays:0};
+  // pick storm days (never on sol 1, so the warning always comes first)
+  while(S.stormSols.length < CONFIG.storms){
+    const d = 3 + rand(CONFIG.sols-3);
+    if(!S.stormSols.includes(d)) S.stormSols.push(d);
+  }
+  const pool = [...REAL_FLARES].sort(()=>Math.random()-.5);
+  S.stormSols.sort((a,b)=>a-b).forEach((d,i)=>S.flares[d]=pool[i]);
+  for(let d=1; d<=CONFIG.sols; d++) if(Math.random()<CONFIG.dustChance && !S.stormSols.includes(d)) S.dustSols.push(d);
+  plan = {oxy:0, food:0, shield:0, explore:0};
+  document.getElementById('log').innerHTML='';
+  log(T(`⭐ Mission specialist: ${CREW[LEAD].name} the ${SPECS[LEAD].en[0]}.`,`⭐ Especialista: ${CREW[LEAD].name}, ${SPECS[LEAD].es[0].toLowerCase()}.`));
+  log(T("🚀 Landing complete! The crew is ready. Good luck, Commander.","🚀 ¡Aterrizaje completo! La tripulación está lista. Suerte, Comandante."));
+  render();
+}
+function energyToday(){return Math.max(0,(S.dustSols.includes(S.sol) ? CONFIG.energyDust : CONFIG.energyNormal) - (S.penaltySol===S.sol ? S.penalty : 0) - CONFIG.sickPenalty*sickCount())}
+function sickCount(){return S.resting.filter(Boolean).length}
+function healthy(){return [0,1,2,3].filter(i=>!S.resting[i])}
+function explorers(){const h=healthy(); return h.slice(Math.max(0,h.length-Math.min(plan.explore,3)));}
+function used(){return plan.oxy+plan.food+plan.shield+plan.explore}
+
+function change(k,d){
+  if(S.over) return;
+  const v = plan[k]+d;
+  if(v<0) return;
+  if(k==='shield' && v>CONFIG.shieldMax) return;
+  if(k==='explore' && (v>CONFIG.exploreMax || v>healthy().length)) return;
+  if(d>0 && used()>=energyToday()) return;
+  plan[k]=v; render();
+}
+
+function nextReport(){
+  const i = Math.floor((S.sol-1)/5);
+  return {sol:(i+1)*5, need:CONFIG.reports[i]};
+}
+
+function endSol(){
+  if(S.over) return;
+  const storm = S.stormSols.includes(S.sol);
+  const o2Need = CONFIG.crew*CONFIG.o2PerPerson;
+  const mealNeed = CONFIG.crew*CONFIG.mealsPerPerson;
+  // Remaining = Start + Production - Consumption
+  S.oxy  = Math.min(CONFIG.maxOxy,  S.oxy  + plan.oxy*CONFIG.o2PerEnergy - o2Need);
+  S.food = Math.min(CONFIG.maxFood, S.food + plan.food*CONFIG.mealsPerEnergy + (LEAD===1 && plan.food>=2 ? 1 : 0) - mealNeed);
+  const raw = storm ? CONFIG.stormDose : CONFIG.normalDose;
+  const dose = raw*(1 - CONFIG.shieldPerEnergy*plan.shield)*(LEAD===2 ? 0.85 : 1);
+  S.rad += dose;
+  // ---- tired dinos ----
+  const ex = explorers(), hungry = S.oxy < 3 || S.food < 2;
+  const sickToday = [];
+  for(let i=0;i<4;i++){
+    if(S.resting[i]){ S.hp[i] = Math.min(100, S.hp[i] + CONFIG.hpRest + (LEAD===2 && !S.resting[2] ? 10 : 0)); S.restDays++; }
+    else { S.hp[i] += (ex.includes(i) ? -CONFIG.hpExplore : CONFIG.hpSleep) - dose*CONFIG.hpPerMSv; S.hp[i] = Math.min(100, S.hp[i]); }
+    if(hungry) S.hp[i] -= CONFIG.hpHungry;
+    S.hp[i] = Math.max(0, Math.round(S.hp[i]));
+  }
+  for(let i=0;i<4;i++){
+    if(!S.resting[i] && S.hp[i] < CONFIG.hpSick){ S.resting[i] = true; sickToday.push(i); }
+    else if(S.resting[i] && S.hp[i] >= CONFIG.hpBack){ S.resting[i] = false; log(T(`💪 ${CREW[i].name} is back to work!`,`💪 ¡${CREW[i].name} regresó a trabajar!`)); }
+  }
+  sickToday.forEach(i=>log(T(`🩹 ${CREW[i].name} is too tired and goes to the sickbay. You get ${CONFIG.sickPenalty} ⚡ less while ${CREW[i].name} rests.`,`🩹 ${CREW[i].name} está muy cansado y va a la enfermería. Tienes ${CONFIG.sickPenalty} ⚡ menos mientras descansa.`)));
+  const pts = (LEAD===3 && plan.explore===3) ? 6 : CONFIG.explorePoints[plan.explore];
+  S.sci += pts;
+  let msg = T(`Sol ${S.sol}: made ${(plan.oxy*CONFIG.o2PerEnergy).toFixed(1)} kg O₂, ${plan.food*CONFIG.mealsPerEnergy} meals, +${pts} science. Radiation today: ${dose.toFixed(2)} mSv.`,
+              `Sol ${S.sol}: hiciste ${(plan.oxy*CONFIG.o2PerEnergy).toFixed(1)} kg de O₂, ${plan.food*CONFIG.mealsPerEnergy} comidas, +${pts} de ciencia. Radiación hoy: ${dose.toFixed(2)} mSv.`);
+  if(storm) msg = T(`☀️ STORM! `,`☀️ ¡TORMENTA! `) + msg + (plan.shield>=2 ? T(" The shield did its job! 🛡️"," ¡El escudo funcionó! 🛡️") : T(" Ouch, the shield was weak."," Auch, el escudo estaba débil."));
+  log(msg);
+  if(plan.explore>0 && Math.random()<(LEAD===3?0.6:0.3)){const F=DEST==='moon'?FINDS_MOON:FINDS; const f=F[rand(F.length)]; f.fx(S); log(T(...f.txt));}
+  S.history.push({sol:S.sol, ...plan, storm, dust:S.dustSols.includes(S.sol), tankOxy:S.oxy, tankFood:S.food, rad:S.rad, sci:S.sci, sick:sickCount()});
+
+  if(S.sol%5===0){ return askQuiz(afterSol); }
+  afterSol();
+}
+
+function afterSol(){
+  // science report every 5 sols
+  if(S.sol%5===0){
+    const r = nextReport();
+    if(S.sci>=r.need){S.reportsMade++; log(T(`📡 Report ${S.sol/5} sent to Earth! NASA is happy (${S.sci}/${r.need} points). 🎉`,`📡 ¡Informe ${S.sol/5} enviado a la Tierra! La NASA está feliz (${S.sci}/${r.need} puntos). 🎉`));}
+    else {S.reportsMissed++; log(T(`📡 Report ${S.sol/5} missed: only ${S.sci} of ${r.need} points. NASA is worried. 😟`,`📡 Informe ${S.sol/5} perdido: solo ${S.sci} de ${r.need} puntos. La NASA está preocupada. 😟`));}
+  }
+  // lose?
+  if(S.oxy<0){return finish(false,"oxygen");}
+  if(S.food<0){return finish(false,"food");}
+  if(S.rad>CONFIG.doseLimit){return finish(false,"radiation");}
+  if(sickCount()===4){return finish(false,"tired");}
+  if(S.sol>=CONFIG.sols){return finish(true,"");}
+  S.sol++;
+  plan = {oxy:0, food:0, shield:0, explore:0};
+  render();
+  // little trip around the solar system, then maybe a surprise dilemma (never on storm days)
+  dayTransition(()=>{ if(!S.stormSols.includes(S.sol) && Math.random() < CONFIG.dilemmaChance) askDilemma(); });
+}
+
+// ================= DAY TRANSITION: the Sun spins and the planets move =================
+let transDone = null, transTimer = null;
+function dayTransition(next){
+  const moon = DEST==='moon', el = document.getElementById('trans');
+  const rays = Array.from({length:12},(_,k)=>`<rect x="257" y="${200-58}" width="6" height="16" rx="3" fill="#ffd23d" transform="rotate(${k*30} 260 200)"/>`).join("");
+  const planet = (r,size,color,dur,start,extra="") => `<circle cx="260" cy="200" r="${r}" fill="none" stroke="#ffffff" stroke-opacity=".15" stroke-dasharray="3 5"/>
+     <g class="orb" style="animation-duration:${dur}s;animation-delay:-${start}s"><circle cx="${260+r}" cy="200" r="${size}" fill="${color}"/>${extra}</g>`;
+  const stars = Array.from({length:50},(_,k)=>`<circle cx="${(k*97)%520}" cy="${(k*61)%400}" r="${k%5?0.9:1.6}" fill="#fff" opacity=".7"/>`).join("");
+  const here = moon ? `<g class="orb" style="animation-duration:1.2s;transform-origin:${260+130}px 200px"><circle cx="${260+130+22}" cy="200" r="5" fill="#d9d9e0" stroke="#8fb8ff" stroke-width="2"/></g>` : "";
+  el.innerHTML = `<svg viewBox="0 0 520 400">${stars}
+    <g class="sunspin">${rays}<circle cx="260" cy="200" r="38" fill="#ffb23d"/><circle cx="260" cy="200" r="30" fill="#ffd23d"/><circle cx="250" cy="190" r="6" fill="#ff9a2d" opacity=".7"/><circle cx="272" cy="208" r="4" fill="#ff9a2d" opacity=".7"/></g>
+    ${planet(62,5,"#b8a89a",1.3,0.4)}
+    ${planet(92,8,"#e8c27a",2.4,1.1)}
+    ${planet(130,9,"#3d7bd9",3.2,0.2, moon ? "" : "")}
+    ${moon ? `<g class="orb" style="animation-duration:3.2s;animation-delay:-0.2s"><g style="transform-origin:${260+130}px 200px;animation:orbit 0.8s linear infinite"><circle cx="${260+130+20}" cy="200" r="4.5" fill="#e8e8f0" stroke="#8fb8ff" stroke-width="2"/></g></g>` : ""}
+    ${planet(178,7,"#e2774a",4.6,2.0, moon ? "" : `<circle cx="${260+178}" cy="200" r="12" fill="none" stroke="#ffd23d" stroke-width="2"/>`)}
+    ${planet(232,4,"#c9a36b",7,3)}
+    </svg>
+    <div class="cap">${T(`☀️ Sol ${S.sol-1} → Sol ${S.sol}`,`☀️ Sol ${S.sol-1} → Sol ${S.sol}`)}</div>
+    <div class="fact">${moon ? T("The Moon goes around Earth every 27.3 days, and both go around the Sun.","La Luna le da la vuelta a la Tierra cada 27.3 días, y las dos giran alrededor del Sol.")
+                            : T("Mars takes 687 Earth days to go around the Sun, almost 2 Earth years!","Marte tarda 687 días terrestres en darle la vuelta al Sol, ¡casi 2 años de la Tierra!")}</div>
+    <div class="fact" style="font-size:12px;opacity:.7">${T("(tap to skip)","(toca para saltar)")}</div>`;
+  transDone = next;
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  clearTimeout(transTimer); transTimer = setTimeout(endTransition, 1900);
+}
+function endTransition(){
+  clearTimeout(transTimer);
+  document.getElementById('trans').classList.remove('on');
+  const n = transDone; transDone = null; if(n) n();
+}
+
+function finish(alive,cause){
+  S.over=true; S.alive=alive; S.cause=cause; render();
+  const stars = alive ? 1 + (S.reportsMade>=5?2:S.reportsMade>=3?1:0) : 0;
+  const why = {oxygen:T("The oxygen tank ran empty.","Se acabó el oxígeno del tanque."), food:T("The food ran out.","Se acabó la comida."), radiation:T("The crew got too much radiation.","La tripulación recibió demasiada radiación."), tired:T("All 4 dinos ended up in the sickbay. Nobody could run the base!","Los 4 dinos terminaron en la enfermería. ¡Nadie pudo manejar la base!")}[cause];
+  let h = alive ? T(`<h2>Mission complete! ${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</h2><p>Your crew survived 30 sols on Mars and sent ${S.reportsMade} of 6 science reports.</p>`,
+                    `<h2>¡Misión cumplida! ${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</h2><p>Tu tripulación sobrevivió 30 soles en Marte y envió ${S.reportsMade} de 6 informes de ciencia.</p>`)
+                : T(`<h2>Mission failed on sol ${S.sol} 💥</h2><p>${why}</p>`, `<h2>La misión falló en el sol ${S.sol} 💥</h2><p>${why}</p>`);
+  h += T(`<h3>🤖 Coach: how to do better</h3>`,`<h3>🤖 Coach: cómo mejorar</h3>`) + coach().map(t=>`<div class="tip">${t}</div>`).join('');
+  h += `<button class="go" onclick="closeModal('end');startMission()">${T("Play again (new storms!) 🔄","Jugar otra vez (¡nuevas tormentas!) 🔄")}</button><button class="choice" style="text-align:center" onclick="closeModal('end');showIntro()">${T("Change place or specialist 🌕🔴","Cambiar lugar o especialista 🌕🔴")}</button>`;
+  document.getElementById('endBox').innerHTML=h;
+  document.getElementById('end').classList.add('on');
+}
+
+// Rule-based coach: looks at the history and gives tips
+function coach(){
+  const t=[], H=S.history, n=H.length||1;
+  const avg=k=>H.reduce((a,h)=>a+h[k],0)/n;
+  const o2Need = CONFIG.crew*CONFIG.o2PerPerson;
+  if(S.cause==="oxygen") t.push(T(`You used ${avg('oxy').toFixed(1)} ⚡ per sol on oxygen, but the crew needs ${o2Need.toFixed(2)} kg. That is ${Math.ceil(o2Need/CONFIG.o2PerEnergy)} ⚡ per sol (${o2Need.toFixed(2)} ÷ ${CONFIG.o2PerEnergy}, rounded up).`,
+                                   `Usaste ${avg('oxy').toFixed(1)} ⚡ por sol en oxígeno, pero la tripulación necesita ${o2Need.toFixed(2)} kg. Eso es ${Math.ceil(o2Need/CONFIG.o2PerEnergy)} ⚡ por sol (${o2Need.toFixed(2)} ÷ ${CONFIG.o2PerEnergy}, redondeado hacia arriba).`));
+  if(S.cause==="food") t.push(T(`The crew eats 4 meals per sol. With 2 meals per ⚡, you need 2 ⚡ on the greenhouse most sols.`,`La tripulación come 4 comidas por sol. Con 2 comidas por ⚡, necesitas 2 ⚡ en el invernadero casi todos los soles.`));
+  const weakStorms = H.filter(h=>h.storm && h.shield<2);
+  if(weakStorms.length) t.push(T(`On sol ${weakStorms.map(h=>h.sol).join(', ')} a storm hit and your shield had less than 2 ⚡. When you see a flare warning, save energy for the shield the next sol!`,`En el sol ${weakStorms.map(h=>h.sol).join(', ')} llegó una tormenta y tu escudo tenía menos de 2 ⚡. Cuando veas una alerta de llamarada, ¡guarda energía para el escudo del siguiente sol!`));
+  const wasted = H.filter(h=>!h.storm && h.shield>0).reduce((a,h)=>a+h.shield,0);
+  if(wasted>=4) t.push(T(`You spent ${wasted} ⚡ on the shield on calm sols. On calm days the radiation is low (${CONFIG.normalDose} mSv), so that energy could go to science.`,`Gastaste ${wasted} ⚡ en el escudo en soles tranquilos. Esos días la radiación es baja (${CONFIG.normalDose} mSv), así que esa energía podía ir a la ciencia.`));
+  if(S.reportsMissed) t.push(T(`You missed ${S.reportsMissed} report(s). Tip: 2 ⚡ on exploring gives 3 points, but 1 ⚡ only gives 1. Bigger trips are worth more!`,`Perdiste ${S.reportsMissed} informe(s). Tip: 2 ⚡ en explorar dan 3 puntos, pero 1 ⚡ solo da 1. ¡Los viajes grandes valen más!`));
+  if(S.restDays>=3) t.push(T(`Your dinos spent ${S.restDays} days in the sickbay. Storms without shield and too much exploring make them tired. A rested crew gives you more ⚡!`,`Tus dinos pasaron ${S.restDays} días en la enfermería. Las tormentas sin escudo y explorar demasiado los cansan. ¡Una tripulación descansada te da más ⚡!`));
+  if(S.cause==="radiation" && DEST==="moon") t.push(T(`On the Moon there is no air to block radiation (1.37 mSv every day). Try putting 1 ⚡ on the shield on normal days too.`,`En la Luna no hay aire que frene la radiación (1.37 mSv cada día). Prueba poner 1 ⚡ en el escudo también en días normales.`));
+  if(!t.length) t.push(T(`Amazing work! Try again: storms and dust change every game. Can you get all 6 reports? 🏆`,`¡Increíble! Juega otra vez: las tormentas y el polvo cambian en cada partida. ¿Puedes lograr los 6 informes? 🏆`));
+  return t;
+}
+
+// ================= SCREEN =================
+function log(m){const p=document.createElement('p');p.innerHTML=m;const L=document.getElementById('log');L.prepend(p);}
+function bar(id,val,max,txt){document.getElementById('b_'+id).style.width=Math.max(0,Math.min(100,val/max*100))+'%';document.getElementById('t_'+id).textContent=txt;}
+function render(){
+  const e=energyToday();
+  document.getElementById('dayTitle').textContent=T(`Sol ${S.sol} of ${CONFIG.sols}`,`Sol ${S.sol} de ${CONFIG.sols}`);
+  document.getElementById('eTotal').textContent=e;
+  document.getElementById('eLeft').textContent=e-used();
+  for(const k in plan) document.getElementById('n_'+k).textContent=plan[k];
+  bar('oxy',S.oxy,CONFIG.maxOxy,T(`${S.oxy.toFixed(1)} kg (crew uses 3.36/sol)`,`${S.oxy.toFixed(1)} kg (gastan 3.36/sol)`));
+  bar('food',S.food,CONFIG.maxFood,T(`${S.food} meals (crew eats 4/sol)`,`${S.food} comidas (comen 4/sol)`));
+  bar('rad',S.rad,CONFIG.doseLimit,T(`${S.rad.toFixed(1)} / ${CONFIG.doseLimit} mSv limit`,`${S.rad.toFixed(1)} / ${CONFIG.doseLimit} mSv límite`));
+  const r=nextReport();
+  bar('sci',S.sci,CONFIG.reports[CONFIG.reports.length-1],T(`${S.sci} points`,`${S.sci} puntos`));
+  document.getElementById('goal').innerHTML = S.over? '' : T(`📡 Next report on <b>sol ${r.sol}</b>: you need <b>${r.need}</b> points in total.`,`📡 Próximo informe en el <b>sol ${r.sol}</b>: necesitas <b>${r.need}</b> puntos en total.`);
+  let a='';
+  if(!S.over){
+    if(S.stormSols.includes(S.sol)) a+=T(`<div class="alert">☀️ <b>Solar storm hitting Mars TODAY!</b> Radiation is about ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} times higher. Use the shield!</div>`,`<div class="alert">☀️ <b>¡Tormenta solar en Marte HOY!</b> La radiación es como ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} veces más alta. ¡Usa el escudo!</div>`);
+    if(S.stormSols.includes(S.sol+1)){const f=S.flares[S.sol+1]; a+=T(`<div class="alert">🛰️ <b>NASA alert:</b> a big ${f.cls} flare just exploded on the Sun (like the real one on ${f.date[0]}). Its radiation reaches Mars <b>tomorrow</b>.</div>`,`<div class="alert">🛰️ <b>Alerta de la NASA:</b> una gran llamarada ${f.cls} acaba de explotar en el Sol (como la real del ${f.date[1]}). Su radiación llega a Marte <b>mañana</b>.</div>`);}
+    if(S.dustSols.includes(S.sol)) a+= DEST==='moon' ? T(`<div class="alert dust">🌑 <b>Shadow day!</b> Mountains at the south pole block the Sun, so you only get ${CONFIG.energyDust} ⚡ today.</div>`,`<div class="alert dust">🌑 <b>¡Día de sombra!</b> Las montañas del polo sur tapan el Sol, así que hoy solo tienes ${CONFIG.energyDust} ⚡.</div>`) : T(`<div class="alert dust">🌪️ <b>Dust storm!</b> Dust covers the solar panels, so you only get ${CONFIG.energyDust} ⚡ today.</div>`,`<div class="alert dust">🌪️ <b>¡Tormenta de polvo!</b> El polvo tapa los paneles solares, así que hoy solo tienes ${CONFIG.energyDust} ⚡.</div>`);
+  }
+  if(!a && !S.over) a = T(`<div class="alert calm">📰 No news from NASA today. A calm sol! ✅</div>`,`<div class="alert calm">📰 Hoy no hay noticias de la NASA. ¡Un sol tranquilo! ✅</div>`);
+  document.getElementById('alerts').innerHTML=a;
+  document.getElementById('goBtn').disabled=S.over;
+  drawScene();
+}
+
+// ================= SCENE: the base and the crew (original drawings) =================
+const CREW = [
+  {name:"Pi",    skin:"#4cd37a", belly:"#c9f2a8", suit:"#ff8a3d"},
+  {name:"Tau",   skin:"#57a8ff", belly:"#cfe6ff", suit:"#ffd23d"},
+  {name:"Sigma", skin:"#b98cff", belly:"#eadcff", suit:"#57c7ff"},
+  {name:"Delta", skin:"#ff8a5c", belly:"#ffe0c8", suit:"#7fe07a"}
+];
+function mood(){
+  if(S.over && !S.alive) return "sad";
+  if(S.rad > CONFIG.doseLimit*0.75) return "sick";
+  if(S.oxy < 4 || S.food < 4 || S.stormSols.includes(S.sol)) return "worried";
+  return "happy";
+}
+// A little T-rex astronaut (original drawing). Feet are at about y=50.
+function astro(x,y,c,m,cls,label,act){
+  const skin = c.skin;
+  const eye = m==="sick" ? `<text x="11" y="-14" font-size="10" fill="#222">✖</text>`
+            : `<circle cx="15" cy="-18" r="4.2" fill="#fff"/><circle cx="16.5" cy="-18" r="2.4" fill="#222"/>`
+              + (m==="worried"||m==="sad" ? `<path d="M10 -25 L20 -22" stroke="#222" stroke-width="2"/>` : "");
+  const mouth = m==="happy" ? `<path d="M8 -6 Q20 0 30 -8" stroke="#222" stroke-width="2.2" fill="none"/><path d="M12 -5 l2 3 l2 -3 M20 -4 l2 3 l2 -3" stroke="#fff" stroke-width="1.6" fill="none"/>`
+             : m==="sad" ? `<path d="M10 -2 Q20 -9 30 -4" stroke="#222" stroke-width="2.2" fill="none"/>`
+             : `<path d="M10 -5 L30 -6" stroke="#222" stroke-width="2.2"/>`;
+  const bubble = act ? `<g transform="translate(14,-66)"><rect x="-4" y="-16" width="30" height="24" rx="10" fill="#fff"/><text x="1" y="1" font-size="15">${act}</text></g>` : "";
+  return `<g transform="translate(${x},${y})"><g class="${cls}" style="animation-delay:${(x%7)/10}s">
+    ${bubble}
+    <path d="M-12 22 Q-38 26 -46 12 Q-30 18 -14 10Z" fill="${skin}" stroke="#1b0f0c" stroke-width="2"/>
+    <rect x="-24" y="2" width="10" height="24" rx="4" fill="${c.suit}" stroke="#1b0f0c" stroke-width="2"/>
+    <ellipse cx="0" cy="18" rx="17" ry="20" fill="${skin}" stroke="#1b0f0c" stroke-width="2"/>
+    <ellipse cx="4" cy="21" rx="9" ry="13" fill="${c.belly}"/>
+    <path d="M-15 8 H15" stroke="${c.suit}" stroke-width="5"/>
+    <path d="M12 12 q8 2 9 8" stroke="${skin}" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path d="M12 12 q8 2 9 8" stroke="#1b0f0c" stroke-width="1" fill="none" opacity=".4"/>
+    <rect x="-12" y="32" width="10" height="18" rx="4" fill="${skin}" stroke="#1b0f0c" stroke-width="2"/>
+    <rect x="3" y="32" width="10" height="18" rx="4" fill="${skin}" stroke="#1b0f0c" stroke-width="2"/>
+    <path d="M-12 49 h13 M3 49 h14" stroke="#1b0f0c" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="8" cy="-14" r="27" fill="#bfe6ff" fill-opacity=".35" stroke="#f4f4f8" stroke-width="3"/>
+    <path d="M-6 -2 Q-8 -30 10 -32 Q30 -32 34 -18 Q36 -6 26 -4 Q14 -2 -6 -2Z" fill="${skin}" stroke="#1b0f0c" stroke-width="2"/>
+    <path d="M0 -30 l3 -6 l3 5 l3 -7 l3 6 l3 -5 l2 6" fill="${c.suit}" stroke="#1b0f0c" stroke-width="1.2"/>
+    <circle cx="31" cy="-16" r="1.4" fill="#222"/>
+    ${eye}${mouth}
+    <path d="M-6 -30 Q8 -42 26 -34" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>
+  </g>
+  <text x="0" y="66" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff3ea" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">${label}</text></g>`;
+}
+function drawScene(){
+  const storm = S.stormSols.includes(S.sol) && !S.over;
+  const warn = S.stormSols.includes(S.sol+1) && !S.over;
+  const dust = S.dustSols.includes(S.sol) && !S.over;
+  const m = mood();
+  const moon = DEST==='moon';
+  const sky = storm ? ["#ff4fd8","#7a1d6b"] : moon ? (dust ? ["#05050c","#000"] : ["#1c1c34","#02020a"]) : dust ? ["#c98a52","#7a4a2a"] : ["#ffb07a","#e2774a"];
+  const GR = moon ? ["#9a9aa2","#7c7c85","#5e5e66"] : ["#b5522c","#9a3f20","#7d311a"];
+  let g = `<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[0]}"/></linearGradient>
+    <radialGradient id="sun"><stop offset="0" stop-color="#fffbe0"/><stop offset=".6" stop-color="#ffd23d"/><stop offset="1" stop-color="#ffd23d" stop-opacity="0"/></radialGradient></defs>
+    <rect width="960" height="300" fill="url(#sky)"/>`;
+  if(moon){ for(let i=0;i<60;i++) g+=`<circle cx="${(i*163)%960}" cy="${(i*71)%170}" r="${i%4?1:1.8}" fill="#fff" opacity=".8"/>`;
+    g+=`<circle cx="760" cy="70" r="26" fill="#3d7bd9"/><path d="M745 58 q10 -6 18 4 q-6 10 -16 6z M766 76 q10 2 12 12 q-12 2 -14 -6z" fill="#4cd37a"/><circle cx="760" cy="70" r="26" fill="none" stroke="#bfe6ff" stroke-width="2" opacity=".6"/>`; }
+  // sun (with a flare when NASA sends an alert)
+  g += `<circle cx="80" cy="60" r="${warn||storm?48:34}" fill="url(#sun)" ${warn||storm?'class="pulse"':''}/>`;
+  if(warn) g += `<text x="128" y="50" font-size="15" font-weight="bold" fill="#fff">${T("FLARE! ☀️💥","¡LLAMARADA! ☀️💥")}</text>`;
+  if(storm) for(let i=0;i<14;i++){const x=150+i*58, y=20+(i*37)%90; g+=`<line x1="${x}" y1="${y}" x2="${x+26}" y2="${y+22}" stroke="#ffe6fb" stroke-width="3" class="pulse" style="animation-delay:${i/7}s"/>`;}
+  // hills and ground
+  g += `<path d="M0 190 Q120 140 240 180 T480 170 T720 160 T960 185 V300 H0Z" fill="${GR[0]}"/>
+        <path d="M0 225 Q200 200 420 222 T960 215 V300 H0Z" fill="${GR[1]}"/>
+        <ellipse cx="840" cy="262" rx="40" ry="8" fill="${GR[2]}"/><ellipse cx="60" cy="275" rx="30" ry="6" fill="${GR[2]}"/>`;
+  // solar panels (covered by dust on dusty sols)
+  for(let i=0;i<3;i++){const x=40+i*62; g+=`<g transform="translate(${x},178)"><rect x="24" y="22" width="5" height="30" fill="#555"/>
+     <rect x="0" y="0" width="54" height="26" rx="3" fill="${dust?'#8a6a4a':'#2d4a8a'}" stroke="#ddd" stroke-width="2"/>
+     <path d="M18 0V26M36 0V26M0 13H54" stroke="${dust?'#a8865f':'#6f95e0'}" stroke-width="1.5"/></g>`;}
+  g += `<text x="128" y="255" text-anchor="middle" font-size="12" fill="#fff3ea" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">⚡ ${energyToday()} ${T("energy","energía")}</text>`;
+  // oxygen tank
+  const o2 = Math.max(0,Math.min(1,S.oxy/CONFIG.maxOxy));
+  g += `<g transform="translate(232,150)"><rect x="0" y="0" width="34" height="80" rx="14" fill="#e8eef5" stroke="#1b0f0c" stroke-width="2"/>
+        <rect x="5" y="${5+70*(1-o2)}" width="24" height="${70*o2}" rx="9" fill="#57c7ff"/>
+        <text x="17" y="98" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff3ea" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">O₂</text></g>`;
+  // the dome habitat
+  g += `<path d="M290 240 A160 120 0 0 1 610 240 Z" fill="#bfe6ff" fill-opacity=".28" stroke="#e8f6ff" stroke-width="4"/>
+        <path d="M330 240 A120 90 0 0 1 570 240" fill="none" stroke="#e8f6ff" stroke-opacity=".35" stroke-width="2"/>
+        <rect x="280" y="236" width="340" height="14" rx="5" fill="#d9d9e0" stroke="#1b0f0c" stroke-width="2"/>`;
+  // greenhouse plants (more plants when you give the greenhouse energy)
+  const plants = 2 + plan.food*2 + Math.min(4, Math.floor(Math.max(0,S.food)/4));
+  for(let i=0;i<plants;i++){const x=322+i*22; if(x>578)break; g+=`<g transform="translate(${x},228)"><rect x="-6" y="0" width="12" height="8" fill="#8a5a3a"/><circle cx="0" cy="-4" r="7" fill="#4cd37a"/><circle cx="-5" cy="-9" r="5" fill="#7fe07a"/><circle cx="5" cy="-9" r="5" fill="#3fb86a"/></g>`;}
+  // radiation shield bubble
+  if(plan.shield>0) g += `<path d="M270 244 A180 140 0 0 1 630 244" fill="#7aa8ff" fill-opacity="${0.12*plan.shield}" stroke="#9fc2ff" stroke-width="${2+plan.shield*2}" ${storm?'class="pulse"':''}/>
+        <text x="450" y="280" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">🛡️ ${T("Shield","Escudo")} ${plan.shield*25}%</text>`;
+  // rover outside for explorers
+  const exList = S.over ? [] : explorers(); const out = exList.length;
+  if(out>0) g += `<g transform="translate(860,214)"><rect x="-40" y="-22" width="80" height="26" rx="8" fill="#e8e8ee" stroke="#1b0f0c" stroke-width="2"/>
+        <rect x="-28" y="-36" width="34" height="16" rx="4" fill="#57c7ff" stroke="#1b0f0c" stroke-width="2"/>
+        <circle cx="-26" cy="8" r="11" fill="#333"/><circle cx="0" cy="8" r="11" fill="#333"/><circle cx="26" cy="8" r="11" fill="#333"/>
+        <line x1="20" y1="-22" x2="30" y2="-48" stroke="#555" stroke-width="3"/><circle cx="30" cy="-50" r="5" fill="#ffd23d"/></g>`;
+  // crew: explorers go outside, the rest stay in the dome
+  const jobs = [];
+  for(let i=0;i<plan.oxy && jobs.length<4;i+=3) jobs.push("🫁");
+  if(sickCount()>0) g += `<text x="300" y="70" font-size="14" font-weight="bold" fill="#fff" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">🩹 ${T("Sickbay","Enfermería")}: −${CONFIG.sickPenalty*sickCount()} ⚡</text>`;
+  if(plan.food>0) jobs.push("🥬");
+  if(plan.shield>0) jobs.push("🛡️");
+  CREW.forEach((c,i)=>{
+    const outside = exList.includes(i), rest = S.resting[i];
+    const k = exList.indexOf(i);
+    const x = outside ? 690 + k*66 : 345 + i*68;
+    const y = outside ? 196 : 170;
+    const act = rest ? "🛏️" : outside ? "🔭" : (S.over ? "" : (jobs.shift()||""));
+    const hp = S.hp[i], hc = hp<35?"#ff5a5a":hp<60?"#ffd23d":"#4cd37a";
+    g += `<g onclick="talk(${i})" style="cursor:pointer;${rest?'opacity:.6':''}">` + astro(x,y,c, rest?"sick":m, rest?"":outside?"walk":"bob", (i===LEAD?"⭐ ":"")+c.name, act)
+       + `<rect x="${x-22}" y="${y+72}" width="44" height="6" rx="3" fill="#1b0f0c"/><rect x="${x-22}" y="${y+72}" width="${44*hp/100}" height="6" rx="3" fill="${hc}"/></g>`;
+    if(TALK && TALK.i===i && Date.now()<TALK.until) g += balloon(x, y-80, TALK.text);
+  });
+  // dust in the air
+  if(dust && moon) g += `<rect width="960" height="300" fill="#000" opacity=".35"/>`;
+  if(dust && !moon) for(let i=0;i<40;i++){const x=(i*97)%1000, y=40+(i*53)%220; g+=`<circle cx="${x}" cy="${y}" r="${2+(i%3)}" fill="#e8c39a" opacity=".6" class="dust" style="animation-delay:${-(i%10)/3}s"/>`;}
+  // big title for the day
+  g += `<text x="940" y="34" text-anchor="end" font-size="22" font-weight="bold" fill="#fff3ea" stroke="#1b0f0c" stroke-width="4" paint-order="stroke">${T(`Sol ${S.sol}`,`Sol ${S.sol}`)}</text>`;
+  if(storm) g += `<text x="940" y="60" text-anchor="end" font-size="15" font-weight="bold" fill="#fff" stroke="#7a1d6b" stroke-width="4" paint-order="stroke">☢️ ${T("SOLAR STORM!","¡TORMENTA SOLAR!")}</text>`;
+  if(dust) g += `<text x="940" y="60" text-anchor="end" font-size="15" font-weight="bold" fill="#fff" stroke="#5a3a1a" stroke-width="4" paint-order="stroke">${moon ? T("🌑 SHADOW DAY","🌑 DÍA DE SOMBRA") : T("🌪️ DUST STORM","🌪️ TORMENTA DE POLVO")}</text>`;
+  if(!S.over && !TALK) g += `<text x="480" y="24" text-anchor="middle" font-size="13" fill="#fff3ea" opacity=".85">${T("👆 Tap a dino to talk!","👆 ¡Toca un dino para hablar!")}</text>`;
+  document.getElementById('scene').innerHTML = g;
+}
+
+
+// ================= INTERACTIVE: talking dinos, dilemmas and math quizzes =================
+let TALK = null;
+const FACTS = [
+  ["Did you know? A sol (Mars day) lasts 24 h 39 min! ⏰","¿Sabías que un sol (día en Marte) dura 24 h 39 min? ⏰"],
+  ["Curiosity measured 0.67 mSv of radiation per day on Mars. ☢️","Curiosity midió 0.67 mSv de radiación por día en Marte. ☢️"],
+  ["On the Space Station, NASA recycles 98% of the water! 💧","¡En la Estación Espacial, la NASA recicla el 98% del agua! 💧"],
+  ["The MOXIE machine made 122 grams of oxygen on Mars! 🫁","¡La máquina MOXIE fabricó 122 gramos de oxígeno en Marte! 🫁"],
+  ["Mars gets less than half the sunlight that Earth gets. ☀️","Marte recibe menos de la mitad de la luz del Sol que la Tierra. ☀️"],
+  ["Water is one of the best shields against radiation! 🛡️","¡El agua es uno de los mejores escudos contra la radiación! 🛡️"],
+  ["Each of us breathes about 0.84 kg of oxygen every sol. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por sol. 🦖"]
+];
+const FACTS_MOON = [
+  ["Chang'e 4 measured 1.37 mSv of radiation per day on the Moon. ☢️","Chang'e 4 midió 1.37 mSv de radiación por día en la Luna. ☢️"],
+  ["The Moon has no air, so nothing slows down space radiation. 🌕","La Luna no tiene aire, así que nada frena la radiación espacial. 🌕"],
+  ["Some craters at the south pole never see the Sun, and they hold ice! 🧊","¡Algunos cráteres del polo sur nunca ven el Sol y guardan hielo! 🧊"],
+  ["On the Space Station, NASA recycles 98% of the water! 💧","¡En la Estación Espacial, la NASA recicla el 98% del agua! 💧"],
+  ["Artemis astronauts will explore the Moon's south pole, like us! 🚀","¡Los astronautas de Artemis explorarán el polo sur de la Luna, como nosotros! 🚀"],
+  ["Each of us breathes about 0.84 kg of oxygen every day. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por día. 🦖"]
+];
+function talk(i){
+  let t;
+  if(S.oxy < 4) t = T("I can't breathe well... more oxygen, please! 🫁","No puedo respirar bien... ¡más oxígeno, por favor! 🫁");
+  else if(S.food < 4) t = T("My tummy is growling! Feed the greenhouse! 🥬","¡Me ruge la panza! ¡Dale energía al invernadero! 🥬");
+  else if(S.rad > CONFIG.doseLimit*0.75) t = T("I feel sick from all this radiation... ☢️","Me siento mal con tanta radiación... ☢️");
+  else if(S.stormSols.includes(S.sol+1)) t = T("NASA saw a flare! Save energy for the shield tomorrow! 🛡️","¡La NASA vio una llamarada! ¡Guarda energía para el escudo de mañana! 🛡️");
+  else if(S.resting[i]) t = T("I'm resting in the sickbay... I'll be back soon! 🩹","Estoy descansando en la enfermería... ¡ya casi regreso! 🩹");
+  else if(S.hp[i] < 50) t = T("I'm sooo tired... please don't send me exploring. 😴","Estoy taaan cansado... porfa no me mandes a explorar. 😴");
+  else if(S.stormSols.includes(S.sol)) t = T("The storm is here! Is the shield on?? 😱","¡Llegó la tormenta! ¿Está prendido el escudo?? 😱");
+  else { const F = DEST==='moon' ? FACTS_MOON : FACTS; t = T(...F[rand(F.length)]); }
+  TALK = {i, text:`${CREW[i].name}: ${t}`, until:Date.now()+4500};
+  drawScene();
+  setTimeout(()=>{ if(TALK && Date.now()>=TALK.until){ TALK=null; drawScene(); } }, 4600);
+}
+function balloon(x,y,text){
+  const words = text.split(" "), lines=[""];
+  words.forEach(w=>{ if((lines[lines.length-1]+" "+w).length>30) lines.push(w); else lines[lines.length-1]+=(lines[lines.length-1]?" ":"")+w; });
+  const w = 230, h = 18*lines.length+14;
+  const bx = Math.max(10, Math.min(950-w, x-w/2));
+  return `<g><rect x="${bx}" y="${y-h}" width="${w}" height="${h}" rx="12" fill="#fff" stroke="#1b0f0c" stroke-width="2"/>
+    <path d="M${x-8} ${y} L${x} ${y+12} L${x+8} ${y}" fill="#fff" stroke="#1b0f0c" stroke-width="2"/>
+    <rect x="${x-9}" y="${y-3}" width="18" height="5" fill="#fff"/>
+    ${lines.map((l,k)=>`<text x="${bx+12}" y="${y-h+22+k*18}" font-size="13" fill="#1b0f0c">${l}</text>`).join("")}</g>`;
+}
+
+const DILEMMAS = [
+  {t:["🔧 The oxygen machine is making a funny noise!","🔧 ¡La máquina de oxígeno hace un ruido raro!"],
+   a:[["Fix it now","Arreglarla ya"],["You lose 2 ⚡ today.","Pierdes 2 ⚡ hoy."], ()=>{S.penaltySol=S.sol;S.penalty=2;return T("You fixed it. Today you have 2 ⚡ less.","La arreglaste. Hoy tienes 2 ⚡ menos.");}],
+   b:[["Ignore it","Ignorarla"],["50% chance it breaks and you lose 4 kg of oxygen.","50% de probabilidad de que se rompa y pierdas 4 kg de oxígeno."], ()=>{if(Math.random()<.5){S.oxy-=4;return T("Oh no! It broke. −4 kg oxygen. 😬","¡Oh no! Se rompió. −4 kg de oxígeno. 😬");}return T("Phew! It kept working... this time.","¡Uf! Siguió funcionando... esta vez.");}]},
+  {t:["📡 Earth asks for a live video for schools!","📡 ¡La Tierra pide un video en vivo para las escuelas!"],
+   a:[["Make the video","Hacer el video"],["+2 science points, but it takes time: −2 meals.","+2 puntos de ciencia, pero toma tiempo: −2 comidas."], ()=>{S.sci+=2;S.food-=2;return T("Kids on Earth loved it! +2 science, −2 meals.","¡A los niños de la Tierra les encantó! +2 ciencia, −2 comidas.");}],
+   b:[["Say no","Decir que no"],["Nothing happens, but you lose a chance to inspire.","No pasa nada, pero pierdes la oportunidad de inspirar."], ()=>T("OK, maybe next time.","Ok, quizá la próxima.")]},
+  {t:["✨ Delta sees something shiny in a far crater!","✨ ¡Delta ve algo brillante en un cráter lejano!"],
+   a:[["Go look","Ir a ver"],["+4 science points, but the long trip gives +1.5 mSv radiation.","+4 puntos de ciencia, pero el viaje largo da +1.5 mSv de radiación."], ()=>{S.sci+=4;S.rad+=1.5;return T("It was a rare mineral! +4 science, +1.5 mSv.","¡Era un mineral raro! +4 ciencia, +1.5 mSv.");}],
+   b:[["Stay safe","Quedarse a salvo"],["No radiation, no points.","Sin radiación, sin puntos."], ()=>T("Delta is a bit sad, but safe.","Delta está un poco triste, pero a salvo.")]},
+  {t:["🍂 Some greenhouse plants look sick!","🍂 ¡Algunas plantas del invernadero se ven enfermas!"],
+   a:[["Remove the sick plants","Quitar las plantas enfermas"],["You lose 3 meals now.","Pierdes 3 comidas ahora."], ()=>{S.food-=3;return T("The other plants are safe. −3 meals.","Las demás plantas están a salvo. −3 comidas.");}],
+   b:[["Wait and see","Esperar a ver"],["50% chance the disease spreads: −6 meals.","50% de probabilidad de que se contagien: −6 comidas."], ()=>{if(Math.random()<.5){S.food-=6;return T("It spread! −6 meals. 😟","¡Se contagiaron! −6 comidas. 😟");}return T("Lucky! The plants got better.","¡Suerte! Las plantas se curaron.");}]},
+  {t:["🏠 Tau misses home and feels sad.","🏠 Tau extraña su casa y está triste."],
+   a:[["Call family on Earth","Llamar a la familia en la Tierra"],["The call uses 1 ⚡ today.","La llamada usa 1 ⚡ hoy."], ()=>{S.penaltySol=S.sol;S.penalty=1;return T("Tau is happy again! −1 ⚡ today.","¡Tau está feliz otra vez! −1 ⚡ hoy.");}],
+   b:[["Keep working","Seguir trabajando"],["Tau works slowly: −1 science point.","Tau trabaja lento: −1 punto de ciencia."], ()=>{S.sci=Math.max(0,S.sci-1);return T("Tau keeps working, but slowly. −1 science.","Tau sigue trabajando, pero lento. −1 ciencia.");}]}
+];
+function popup(html){document.getElementById('popBox').innerHTML=html;document.getElementById('pop').classList.add('on');}
+function askDilemma(){
+  const d = DILEMMAS[rand(DILEMMAS.length)];
+  window._dl = d;
+  popup(`<h2>${T("Surprise!","¡Sorpresa!")} ${T(...d.t)}</h2><p>${T("What do you do, Commander? Every choice has a cost!","¿Qué haces, Comandante? ¡Cada decisión tiene un costo!")}</p>
+    <button class="choice" onclick="pickDilemma('a')"><b>A) ${T(...d.a[0])}</b><small>${T(...d.a[1])}</small></button>
+    <button class="choice" onclick="pickDilemma('b')"><b>B) ${T(...d.b[0])}</b><small>${T(...d.b[1])}</small></button>`);
+}
+function pickDilemma(k){
+  const r = window._dl[k][2]();
+  log(`🎲 ${T(...window._dl.t)} → ${r}`);
+  popup(`<h2>${r}</h2><button class="go" onclick="closeModal('pop');checkLose()">${T("Continue ➜","Continuar ➜")}</button>`);
+}
+function checkLose(){
+  if(S.oxy<0) return finish(false,"oxygen");
+  if(S.food<0) return finish(false,"food");
+  if(S.rad>CONFIG.doseLimit) return finish(false,"radiation");
+  if(sickCount()===4) return finish(false,"tired");
+  render();
+}
+
+function makeQuiz(){
+  const tank = [9,12,15,18][rand(4)];
+  const Q = [
+    {q:T("Each dino breathes 0.84 kg of oxygen per sol. How much do the 4 dinos breathe in one sol?","Cada dino respira 0.84 kg de oxígeno por sol. ¿Cuánto respiran los 4 dinos en un sol?"), ok:"3.36 kg", no:["0.84 kg","4.84 kg"], why:"4 × 0.84 = 3.36 kg"},
+    {q:T(`The tank has ${tank} kg of oxygen. The crew uses 3 kg per sol and you make none. How many sols will it last?`,`El tanque tiene ${tank} kg de oxígeno. La tripulación gasta 3 kg por sol y no fabricas nada. ¿Cuántos soles dura?`), ok:`${tank/3} ${T("sols","soles")}`, no:[`${tank/3+2} ${T("sols","soles")}`,`${tank-3} ${T("sols","soles")}`], why:`${tank} ÷ 3 = ${tank/3}`},
+    {q:T("Each ⚡ on the shield blocks 25% of the radiation. How much do 3 ⚡ block?","Cada ⚡ en el escudo bloquea 25% de la radiación. ¿Cuánto bloquean 3 ⚡?"), ok:"75%", no:["25%","100%"], why:"3 × 25% = 75%"},
+    {q:T("Exploring with 2 ⚡ gives 3 points. How many points in 6 sols of doing that?","Explorar con 2 ⚡ da 3 puntos. ¿Cuántos puntos juntas si lo haces 6 soles?"), ok:T("18 points","18 puntos"), no:[T("12 points","12 puntos"),T("9 points","9 puntos")], why:"6 × 3 = 18"},
+    {q:T("A normal sol gives 0.67 mSv of radiation. A big storm is about 12 times more. About how much is a storm?","Un sol normal da 0.67 mSv de radiación. Una tormenta grande es como 12 veces más. ¿Como cuánto es una tormenta?"), ok:T("About 8 mSv","Como 8 mSv"), no:[T("About 1 mSv","Como 1 mSv"),T("About 67 mSv","Como 67 mSv")], why:"0.67 × 12 ≈ 8"},
+    {q:T("A sol lasts 24 h 39 min. How many minutes longer is it than an Earth day?","Un sol dura 24 h 39 min. ¿Cuántos minutos más dura que un día en la Tierra?"), ok:T("39 minutes","39 minutos"), no:[T("24 minutes","24 minutos"),T("63 minutes","63 minutos")], why:"24 h 39 min − 24 h = 39 min"},
+    {q:T("1 ⚡ in the greenhouse makes 2 meals. The crew eats 4 meals per sol. How many ⚡ do you need each sol?","1 ⚡ en el invernadero hace 2 comidas. La tripulación come 4 comidas por sol. ¿Cuántos ⚡ necesitas cada sol?"), ok:"2 ⚡", no:["4 ⚡","1 ⚡"], why:"4 ÷ 2 = 2"}
+  ];
+  const QM = [
+    {q:T("On the Moon you get 1.37 mSv of radiation per day. About how much in 10 days?","En la Luna recibes 1.37 mSv de radiación por día. ¿Como cuánto en 10 días?"), ok:"13.7 mSv", no:["1.37 mSv","137 mSv"], why:"1.37 × 10 = 13.7"},
+    {q:T("Mars gives 0.67 mSv per day and the Moon 1.37 mSv. About how many times more is the Moon?","Marte da 0.67 mSv por día y la Luna 1.37 mSv. ¿Como cuántas veces más es la Luna?"), ok:T("About 2 times","Como 2 veces"), no:[T("About 10 times","Como 10 veces"),T("The same","Igual")], why:"1.37 ÷ 0.67 ≈ 2"}
+  ];
+  const pool = DEST==='moon' ? [...Q.filter((x,k)=>k!==4 && k!==5), ...QM] : Q;
+  return pool[rand(pool.length)];
+}
+function askQuiz(next){
+  const q = makeQuiz(); window._qz = {q,next};
+  const opts = [q.ok, ...q.no].sort(()=>Math.random()-.5);
+  popup(T(`<h2>🧠 Math challenge before the report!</h2><p>Answer right to win <b>+${CONFIG.quizBonus} science points</b>.</p>`,`<h2>🧠 ¡Reto de mate antes del informe!</h2><p>Contesta bien para ganar <b>+${CONFIG.quizBonus} puntos de ciencia</b>.</p>`) + `<p style="font-size:17px"><b>${q.q}</b></p>`
+    + opts.map(o=>`<button class="choice" onclick="answerQuiz(this.dataset.o)" data-o="${o}"><b>${o}</b></button>`).join(""));
+}
+function answerQuiz(o){
+  const {q,next} = window._qz, good = o===q.ok;
+  if(good){ S.sci += CONFIG.quizBonus; log(T(`🧠 Math challenge: correct! +${CONFIG.quizBonus} science.`,`🧠 Reto de mate: ¡correcto! +${CONFIG.quizBonus} ciencia.`)); }
+  else log(T(`🧠 Math challenge: the answer was ${q.ok}.`,`🧠 Reto de mate: la respuesta era ${q.ok}.`));
+  popup(`<h2>${good?T("Correct! 🎉","¡Correcto! 🎉"):T("Not quite! 🤔","¡Casi! 🤔")}</h2><p>${T("The answer is","La respuesta es")} <b>${q.ok}</b> ${T("because","porque")} ${q.why}.</p>`
+    + `<button class="go" onclick="closeModal('pop');window._qz.next()">${T("Send the report 📡","Enviar el informe 📡")}</button>`);
+}
+
+
+// ================= GUIDE TAB: what each thing does =================
+function showTab(t){
+  document.getElementById('gameView').hidden = t!=='game';
+  document.getElementById('guideView').hidden = t!=='guide';
+  document.getElementById('tab_game').classList.toggle('on', t==='game');
+  document.getElementById('tab_guide').classList.toggle('on', t==='guide');
+  if(t==='guide') renderGuide();
+}
+function renderGuide(){
+  const moon = DEST==='moon';
+  const G = [
+    ["🎯", T("The goal","La meta"),
+     T("Keep 4 dino astronauts alive for 30 sols and send a science report every 5 sols. Each report needs more points than the one before.","Mantén vivos a 4 dino-astronautas 30 soles y manda un informe de ciencia cada 5 soles. Cada informe pide más puntos que el anterior."),
+     moon ? T("On the Moon we count normal Earth days (24 hours).","En la Luna contamos días normales de la Tierra (24 horas).") : T("A sol is one day on Mars: 24 h 39 min.","Un sol es un día en Marte: 24 h 39 min.")],
+    ["⚡", T("Energy","Energía"),
+     T(`Your solar panels give you ${CONFIG.energyNormal} ⚡ per sol. Use the + and − buttons to share it. It is never enough for everything!`,`Tus paneles solares te dan ${CONFIG.energyNormal} ⚡ por sol. Usa los botones + y − para repartirla. ¡Nunca alcanza para todo!`),
+     moon ? T(`At the Moon's south pole, mountains sometimes hide the Sun: on shadow days you get only ${DESTS.moon.lowEnergy} ⚡.`,`En el polo sur de la Luna, las montañas a veces tapan el Sol: en días de sombra solo tienes ${DESTS.moon.lowEnergy} ⚡.`)
+          : T(`Dust storms cover the panels: on dusty sols you get only ${DESTS.mars.lowEnergy} ⚡. Real: the Opportunity rover lost power in a 2018 dust storm.`,`Las tormentas de polvo tapan los paneles: esos soles solo tienes ${DESTS.mars.lowEnergy} ⚡. Real: el rover Opportunity se quedó sin energía en una tormenta de polvo en 2018.`)],
+    ["🫁", T("Make oxygen","Fabricar oxígeno"),
+     T(`1 ⚡ = ${CONFIG.o2PerEnergy} kg of oxygen. The crew breathes 3.36 kg per sol (4 × 0.84). If the tank reaches 0, the mission fails.`,`1 ⚡ = ${CONFIG.o2PerEnergy} kg de oxígeno. La tripulación respira 3.36 kg por sol (4 × 0.84). Si el tanque llega a 0, la misión falla.`),
+     T("Real: an astronaut breathes about 0.84 kg of oxygen per day (NASA). NASA's MOXIE made 122 g of oxygen on planet Mars from its air.","Real: un astronauta respira unos 0.84 kg de oxígeno al día (NASA). MOXIE de la NASA fabricó 122 g de oxígeno en el planeta Marte con su aire.")],
+    ["🥬", T("Greenhouse","Invernadero"),
+     T("1 ⚡ = 2 meals. The crew eats 4 meals per sol, so you need about 2 ⚡ every sol. Keep some extra meals: surprises can spoil food!","1 ⚡ = 2 comidas. La tripulación come 4 comidas por sol, así que necesitas unos 2 ⚡ cada sol. Guarda comidas de más: ¡las sorpresas pueden echar a perder comida!"),
+     T("Plants use light, water and CO₂ to make food and oxygen (photosynthesis).","Las plantas usan luz, agua y CO₂ para hacer comida y oxígeno (fotosíntesis).")],
+    ["🛡️", T("Radiation shield","Escudo contra radiación"),
+     T(`Each ⚡ blocks 25% of today's radiation (max 3 = 75%). Use it on storm days! ${moon?"On the Moon, 1 ⚡ every day also helps.":""}`,`Cada ⚡ bloquea 25% de la radiación de hoy (máx. 3 = 75%). ¡Úsalo en días de tormenta! ${moon?"En la Luna también ayuda poner 1 ⚡ cada día.":""}`),
+     T("Real: water is one of the best shields. In the Orion capsule, astronauts build a shelter with bags of water and food.","Real: el agua es de los mejores escudos. En la cápsula Orion, los astronautas arman un refugio con bolsas de agua y comida.")],
+    ["🔭", T("Explore","Explorar"),
+     T("Gives science points: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Explorers may find ice, rocks or caves. But exploring makes dinos tired (−8 health).","Da puntos de ciencia: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Los exploradores pueden encontrar hielo, rocas o cuevas. Pero explorar cansa a los dinos (−8 de salud)."),
+     moon ? T("Real: craters at the Moon's south pole that never see the Sun hold ice.","Real: los cráteres del polo sur de la Luna que nunca ven el Sol guardan hielo.") : T("Real: Mars has ice under the ground and layered rocks from old lakes.","Real: Marte tiene hielo bajo el suelo y rocas con capas de lagos antiguos.")],
+    ["☢️", T("Radiation","Radiación"),
+     T(`Every sol the crew gets ${CONFIG.normalDose} mSv. A solar storm is about ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} times more. If the total passes ${CONFIG.doseLimit} mSv, the mission fails. NASA warns you one sol before a storm.`,`Cada sol la tripulación recibe ${CONFIG.normalDose} mSv. Una tormenta solar es como ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} veces más. Si el total pasa de ${CONFIG.doseLimit} mSv, la misión falla. La NASA te avisa un sol antes de una tormenta.`),
+     moon ? T("Real: Chang'e 4 measured 1.37 mSv per day on the Moon (2020).","Real: Chang'e 4 midió 1.37 mSv por día en la Luna (2020).") : T("Real: Curiosity measured 0.67 mSv per day on Mars, and a huge jump on May 20, 2024. Storm alerts use real 2024 flares.","Real: Curiosity midió 0.67 mSv por día en Marte, y un salto enorme el 20 de mayo de 2024. Las alertas usan llamaradas reales de 2024.")],
+    ["❤️", T("Health and sickbay","Salud y enfermería"),
+     T(`Each dino has a health bar. Radiation (−3 per mSv), exploring (−8) and hunger hurt it. Staying in the base gives +3. Below ${CONFIG.hpSick}, a dino goes to the sickbay: it can't explore and you get ${CONFIG.sickPenalty} ⚡ less. It comes back at ${CONFIG.hpBack}. If all 4 are in the sickbay, you lose.`,`Cada dino tiene una barra de salud. La radiación (−3 por mSv), explorar (−8) y el hambre la bajan. Quedarse en la base da +3. Abajo de ${CONFIG.hpSick}, el dino va a la enfermería: no puede explorar y tienes ${CONFIG.sickPenalty} ⚡ menos. Regresa al llegar a ${CONFIG.hpBack}. Si los 4 están en la enfermería, pierdes.`),
+     T("Tap a dino to hear how it feels!","¡Toca a un dino para saber cómo se siente!")],
+    ["⭐", T("Specialists","Especialistas"),
+     SPECS.map(x=>`${x.ico} <b>${CREW[x.i].name}</b>: ${T(x.en[1],x.es[1])}`).join("<br>"),
+     T("Choose one at the start. The ⭐ shows who it is.","Eliges uno al inicio. La ⭐ muestra quién es.")],
+    ["🎲", T("Surprises","Sorpresas"),
+     T("Sometimes something happens and you choose A or B. Both options cost something: there is no free choice!","A veces pasa algo y eliges A o B. Las dos opciones cuestan algo: ¡no hay decisión gratis!"), ""],
+    ["🧠", T("Math challenge","Reto de mate"),
+     T(`Before each report you get a math question. Answer right for +${CONFIG.quizBonus} science points. If you miss, it explains the answer.`,`Antes de cada informe te sale una pregunta de mate. Si contestas bien ganas +${CONFIG.quizBonus} puntos de ciencia. Si fallas, te explica la respuesta.`), ""],
+    ["🤖", T("The coach","El coach"),
+     T("When the mission ends, the coach looks at your game and tells you what to do better next time.","Cuando termina la misión, el coach revisa tu partida y te dice qué hacer mejor la próxima vez."), ""],
+    ["🌕🔴", T("Moon or Mars?","¿Luna o Marte?"),
+     T("Mars has thin air that blocks some radiation, but dust storms. The Moon has no air, so radiation is double: it is the harder mission.","Marte tiene aire delgado que frena algo de radiación, pero hay tormentas de polvo. La Luna no tiene aire y la radiación es el doble: es la misión más difícil."), ""]
+  ];
+  document.getElementById('guideView').innerHTML = G.map(g=>`<div class="g"><h3>${g[0]} ${g[1]}</h3><p>${g[2]}</p>${g[3]?`<p class="real">🛰️ ${g[3]}</p>`:""}</div>`).join("");
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('on')}
+let startLang = 'en';
+try { startLang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('mars30_lang') || 'en'; } catch(e) {}
+LANG = startLang === 'es' ? 'es' : 'en';
+newGame();
+setLang(LANG);
+showIntro();
+</script>
+</body>
+</html>
