@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MARS 30</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 :root{--line:#4a2c20;--line2:#6a3a26;--btn:#5a3324;--sel:#4a2a1d;--glow:#7a2a12;--deep:#120a08;--bg:#1b0f0c;--panel:#2a1913;--panel2:#3a2219;--ink:#fff3ea;--muted:#d8b8a6;--accent:#ff8a3d;--good:#4cd37a;--bad:#ff5a5a;--warn:#ffd23d;--o2:#57c7ff;--food:#7fe07a;--rad:#ff6bd6;--sci:#ffd23d}
 *{box-sizing:border-box}
@@ -26,6 +27,18 @@ h1 span{color:var(--accent)}
 .row .lab small{display:block;color:var(--muted);font-size:12px}
 .row button{width:34px;height:34px;border-radius:50%;border:0;background:var(--btn);color:var(--ink);font-size:20px;cursor:pointer}
 .row button:hover{background:var(--accent);color:#1b0f0c}
+.exPick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 8px;padding:0 8px;font-size:12.5px;color:var(--muted)}
+.exPick button{display:flex;align-items:center;gap:4px;padding:4px 7px;border-radius:999px;border:2px solid var(--line2);background:var(--panel2);color:var(--ink);font-size:13px;font-weight:bold;cursor:pointer}
+.exPick button.on{border-color:var(--accent);background:var(--sel);box-shadow:0 0 0 1px var(--accent) inset}
+.exPick button:disabled{opacity:.45;cursor:not-allowed}
+.exPick i{display:inline-block;width:20px;height:6px;border-radius:3px;background:#1b0f0c;overflow:hidden}.exPick i b{display:block;height:100%}
+.needs{background:var(--panel2);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+.needs h3{margin:0 0 4px;font-size:15px;color:var(--accent)}
+.needs .all{font-size:13px;margin:2px 0 6px}
+.needs .d{display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;border-top:1px solid var(--line)}
+.needs .d b{min-width:58px}
+.needs .d i{flex:0 0 34px;height:6px;border-radius:3px;background:#1b0f0c;overflow:hidden}.needs .d i u{display:block;height:100%}
+.needs .ok{color:var(--good)}.needs .bad{color:#ffb4a8}
 .row .n{width:26px;text-align:center;font-size:20px;font-weight:bold}
 .energy{font-size:15px;margin:6px 0 2px}
 .energy b{font-size:22px;color:var(--warn)}
@@ -57,6 +70,17 @@ h1 span{color:var(--accent)}
 footer{margin-top:14px}
 .scene{padding:0;overflow:hidden;margin-bottom:14px;border:2px solid var(--line2)}
 .scene svg{display:block;width:100%;height:auto}
+.scene{position:relative}
+#scene3d canvas{display:block;width:100%!important;height:auto!important}
+#viewBtn{position:absolute;left:10px;top:10px;z-index:3;padding:6px 12px;border-radius:10px;border:2px solid #fff3ea;background:rgba(27,15,12,.7);color:#fff3ea;font-weight:bold;font-size:13px;cursor:pointer}
+#hud3d{position:absolute;inset:0;pointer-events:none;padding:10px 14px;text-align:right;color:#fff3ea;text-shadow:0 0 4px #1b0f0c,0 0 2px #1b0f0c}
+#hud3d .day{font-size:24px;font-weight:bold}
+#hud3d .tag{display:inline-block;margin:4px 0 0 6px;padding:3px 9px;border-radius:9px;font-weight:bold;font-size:13px;text-shadow:none}
+#hud3d .tag.st{background:#7a1d6b;color:#fff}#hud3d .tag.du{background:#5a3a1a;color:#fff}#hud3d .tag.ok{background:#1f6b3a;color:#fff}
+#hud3d .en{position:absolute;left:12px;bottom:10px;font-size:13px;font-weight:bold}
+@media(max-width:600px){#hud3d .hint{display:none}#hud3d .day{font-size:19px}}
+#hud3d .hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:13px;opacity:.9}
+#hud3d .bubble{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;max-width:min(80%,420px);background:#fff;color:#1b0f0c;text-shadow:none;border:2px solid #1b0f0c;border-radius:14px;padding:8px 12px;font-size:14px;text-align:center}
 .row.c-oxy{border-left:5px solid var(--o2)} .row.c-food{border-left:5px solid var(--food)}
 .row.c-shield{border-left:5px solid #7aa8ff} .row.c-explore{border-left:5px solid var(--sci)}
 .row.c-oxy button:hover{background:var(--o2)} .row.c-food button:hover{background:var(--food)}
@@ -68,7 +92,7 @@ footer{margin-top:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .bob{animation:bob 2.2s ease-in-out infinite}
 .walk{animation:walk .9s ease-in-out infinite}
-.dust{animation:drift 3s linear infinite}
+circle.dust{animation:drift 3s linear infinite}
 .pulse{animation:pulse 1.6s ease-in-out infinite}
 .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .lang{display:flex;background:var(--panel);border:2px solid var(--line2);border-radius:999px;overflow:hidden;flex-shrink:0;margin-top:8px}
@@ -83,9 +107,14 @@ footer{margin-top:14px}
 #trans .fact{color:#a9b6d6;font-size:14px;margin-top:4px;text-align:center;padding:0 16px}
 @keyframes fadeio{0%{opacity:0}12%{opacity:1}85%{opacity:1}100%{opacity:0}}
 @keyframes orbit{to{transform:rotate(360deg)}}
+.launch{text-align:center;margin:8px 0}.launch svg{width:100%;max-width:340px;height:auto;display:block;margin:0 auto}.launch p{margin:4px 0;font-size:13px;color:var(--muted)}
+.rocketUp{animation:rocketUp 3.2s ease-in infinite}
+@keyframes rocketUp{0%,15%{transform:translate(0,0)}100%{transform:translate(95px,-150px) rotate(30deg)}}
+.rocketUp{transform-box:fill-box;transform-origin:center}
+.flame{animation:pulse .2s infinite}
 .orb{transform-origin:260px 200px;animation:orbit linear infinite}
 .sunspin{transform-origin:260px 200px;animation:spin 4s linear infinite}
-@media (prefers-reduced-motion:reduce){.orb,.sunspin{animation:none}#trans.on{animation:none}}
+@media (prefers-reduced-motion:reduce){.orb,.sunspin,.rocketUp{animation:none}#trans.on{animation:none}}
 body.moon{--bg:#0a0e1c;--panel:#141b30;--panel2:#1d2744;--ink:#eef3ff;--muted:#a9b6d6;--accent:#8fb8ff;--line:#2a3658;--line2:#3b4c7c;--btn:#2b3b68;--sel:#24345e;--glow:#2a3a80;--deep:#070a14}
 body{transition:background .5s}
 .tabs{display:flex;gap:6px;margin:0 0 10px}
@@ -110,7 +139,9 @@ body{transition:background .5s}
   <div class="tabs"><button id="tab_game" class="on" onclick="showTab('game')">🎮 <span id="tabGameTxt">Game</span></button><button id="tab_guide" onclick="showTab('guide')">📖 <span id="tabGuideTxt">How it works</span></button></div>
   <div id="guideView" class="guide" hidden></div>
   <div id="gameView">
-  <div class="card scene"><svg id="scene" viewBox="0 0 960 300" role="img" aria-label="The Mars base and its 4 astronauts"></svg></div>
+  <div class="card scene"><svg id="scene" viewBox="0 0 960 300" role="img" aria-label="The Mars base and its 4 astronauts"></svg>
+    <div id="scene3d" hidden role="img" aria-label="3D view of the base and its 4 dino astronauts"></div><div id="hud3d" hidden></div>
+    <button id="viewBtn" onclick="toggle3D()" hidden>🧊 3D view</button></div>
 
   <div class="grid">
     <div class="card">
@@ -126,11 +157,13 @@ body{transition:background .5s}
         <button onclick="change('shield',-1)">−</button><div class="n" id="n_shield">0</div><button onclick="change('shield',1)">+</button></div>
       <div class="row c-explore"><div class="ico">🔭</div><div class="lab" data-i="r_explore">Explore Mars<small>1 ⚡ = 1 point, 2 ⚡ = 3 points, 3 ⚡ = 5 points!</small></div>
         <button onclick="change('explore',-1)">−</button><div class="n" id="n_explore">0</div><button onclick="change('explore',1)">+</button></div>
+      <div id="exPick" class="exPick"></div>
 
       <button class="go" id="goBtn" onclick="endSol()" data-i="endsol">End sol ➜</button>
     </div>
 
     <div class="card">
+      <div id="needs" class="needs"></div>
       <h2 data-i="status">Base status</h2>
       <div class="stat"><div class="top"><span data-i="s_oxy">🫁 Oxygen tank</span><span id="t_oxy"></span></div><div class="bar"><i id="b_oxy" style="background:var(--o2)"></i></div></div>
       <div class="stat"><div class="top"><span data-i="s_food">🥬 Food storage</span><span id="t_food"></span></div><div class="bar"><i id="b_food" style="background:var(--food)"></i></div></div>
@@ -158,6 +191,7 @@ body{transition:background .5s}
   </footer>
 </div>
 
+<p class="src" data-i="credit3d" style="font-size:12px;text-align:center;color:var(--muted);padding:0 16px 16px;margin:0">🧊 The 3D view uses the free <a href="https://threejs.org" target="_blank">Three.js</a> library, like our teammates' 3D games. If your computer is slow, tap “2D view”.</p>
 <div class="modal on" id="intro"><div class="box" id="introBox"></div></div>
 
 <div class="modal" id="end"><div class="box" id="endBox"></div></div>
@@ -181,6 +215,7 @@ function W(t){
    .replace(/Explorar Marte/g,"Explorar la Luna").replace(/ en Marte/g," en la Luna").replace(/ a Marte/g," a la Luna");
 }
 const ES = {
+  credit3d: `🧊 La vista 3D usa la librería gratuita <a href="https://threejs.org" target="_blank">Three.js</a>, como los juegos 3D de nuestros compañeros. Si tu compu va lenta, toca «Vista 2D».`,
   sub: 'Un juego del equipo <b>Pi-Rex</b>. Mantén vivos a 4 dino-astronautas durante 30 <span class="word" title="Un sol es un día en Marte. Dura 24 horas y 39 minutos.">soles</span> y haz ciencia de verdad. ¡Cada decisión tiene un costo!',
   energy: '⚡ Energía solar de hoy:',
   leftof: 'quedan de',
@@ -255,26 +290,30 @@ const CONFIG = {
   hpRest: 20,         // a day in the sickbay heals this much (+10 with the doctor)
   hpSick: 35, hpBack: 80,   // go to the sickbay below 35, back to work at 80
   sickPenalty: 1,     // each dino in the sickbay = 1 ⚡ less (fewer hands to run the base)
-  reports: [6, 15, 26, 38, 51, 66] // cumulative science points needed on sols 5,10,15,20,25,30
+  reports: [6, 15, 26, 38, 51, 66], // cumulative science points needed on sols 5,10,15,20,25,30
+  // Ideas from the PiRex: En el Espacio 2 game (teammate)
+  nightStart: 15, nightEnd: 28,   // Moon: a lunar night lasts about 14 Earth days (real)
+  dustStorms: 2,                  // Mars: dust storms that last 2 or 3 sols
+  rocketSols: [10, 20], rocketOxy: 3, rocketFood: 4   // Moon only: supply rocket from Earth (3-day trip)
 };
 
 // ================= DESTINATIONS (real data for each place) =================
 const DESTS = {
-  mars: {normalDose:0.67, stormDose:8.1, doseLimit:40, lowEnergy:7, lowChance:0.12},   // Curiosity RAD
-  moon: {normalDose:1.37, stormDose:12,  doseLimit:50, lowEnergy:6, lowChance:0.15}    // Chang'e 4 LND: 1,369 µSv/day
+  mars: {normalDose:0.67, stormDose:8.1, doseLimit:40, lowEnergy:7, lowChance:0},   // Curiosity RAD
+  moon: {normalDose:1.37, stormDose:12,  doseLimit:50, lowEnergy:8, lowChance:0}    // Chang'e 4 LND: 1,369 µSv/day; night = batteries
 };
 // ================= SPECIALISTS (choose one leader) =================
 const SPECS = [
   {i:0, ico:"🔧", en:["Engineer","Oxygen machine works better: 1 ⚡ = 0.7 kg of O₂."], es:["Ingeniero","La máquina de oxígeno rinde más: 1 ⚡ = 0.7 kg de O₂."]},
   {i:1, ico:"🌱", en:["Botanist","With 2 ⚡ or more in the greenhouse: +1 extra meal."], es:["Botánico","Con 2 ⚡ o más en el invernadero: +1 comida extra."]},
   {i:2, ico:"🩺", en:["Doctor","Keeps the crew healthy: −15% radiation every day."], es:["Doctora","Cuida a la tripulación: −15% de radiación cada día."]},
-  {i:3, ico:"🪨", en:["Geologist","Finds more things when exploring, and 3 ⚡ give 6 points."], es:["Geóloga","Encuentra más cosas al explorar, y 3 ⚡ dan 6 puntos."]}
+  {i:3, ico:"🪨", en:["Geologist","When Delta goes exploring: finds more things, and 3 ⚡ give 6 points."], es:["Geóloga","Cuando Delta sale a explorar: encuentra más cosas, y 3 ⚡ dan 6 puntos."]}
 ];
 function moonNote(){
   if(DEST !== "moon") return "";
   return LANG === "es"
-   ? `<br><b>🌕 Datos de la Luna:</b> en la superficie lunar la radiación es de 1.37 mSv por día, medida por la sonda china Chang'e 4 (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), como el doble que en Marte, porque la Luna no tiene aire. La base está en el polo sur, como las misiones Artemis: ahí las montañas a veces tapan el Sol, y los cráteres siempre en sombra guardan hielo (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). La dosis de tormenta en la Luna (12 mSv) es una regla del juego.`
-   : `<br><b>🌕 Moon data:</b> radiation on the lunar surface is 1.37 mSv per day, measured by China's Chang'e 4 lander (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), about twice Mars, because the Moon has no air. The base is at the south pole, like the Artemis missions: there, mountains sometimes block the Sun, and craters in permanent shadow hold ice (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). The Moon storm dose (12 mSv) is a game rule.`;
+   ? `<br><b>🌕 Datos de la Luna:</b> en la superficie lunar la radiación es de 1.37 mSv por día, medida por la sonda china Chang'e 4 (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), como el doble que en Marte, porque la Luna no tiene aire. La base está en el polo sur, como las misiones Artemis: ahí los cráteres siempre en sombra guardan hielo (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). En la Luna la noche dura unos 14 días de la Tierra (<a href="https://moon.nasa.gov/moon-in-motion/sunlight-and-darkness/" target="_blank">NASA</a>): en el juego, del día ${CONFIG.nightStart} al ${CONFIG.nightEnd} solo hay energía de baterías. Como la Luna está a 3 días de viaje, un cohete de la Tierra trae provisiones en los días ${CONFIG.rocketSols.join(' y ')}. La dosis de tormenta en la Luna (12 mSv) es una regla del juego.`
+   : `<br><b>🌕 Moon data:</b> radiation on the lunar surface is 1.37 mSv per day, measured by China's Chang'e 4 lander (<a href="https://www.sci.news/space/radiation-dose-rates-lunar-surface-08893.html" target="_blank">Science Advances, 2020</a>), about twice Mars, because the Moon has no air. The base is at the south pole, like the Artemis missions: there, craters in permanent shadow hold ice (<a href="https://www.nasa.gov/wp-content/uploads/2023/10/acr22-wp-why-lunar-south-polar-region.pdf" target="_blank">NASA</a>). On the Moon, night lasts about 14 Earth days (<a href="https://moon.nasa.gov/moon-in-motion/sunlight-and-darkness/" target="_blank">NASA</a>): in the game, from day ${CONFIG.nightStart} to ${CONFIG.nightEnd} you only have battery power. The Moon is a 3-day trip away, so a supply rocket from Earth arrives on days ${CONFIG.rocketSols.join(' and ')}. The Moon storm dose (12 mSv) is a game rule.`;
 }
 let pickDest = "mars", pickLead = 0;
 function showIntro(){
@@ -291,8 +330,8 @@ function showIntro(){
    <p>🔬 La NASA quiere un <b>informe de ciencia cada 5 días</b>. ☀️ Cuando la NASA ve una <b>llamarada solar</b>, te avisa un día antes.</p>
    <h3>1. ¿A dónde vas?</h3>`)
    + `<div class="picks">
-      <button class="choice ${pickDest==='mars'?'on':''}" onclick="pickDest='mars';showIntro()"><b>🔴 ${T("Mars","Marte")}</b><small>${T("Thin air blocks some radiation (0.67 mSv/day), but dust storms cover your panels.","El aire delgado frena algo de radiación (0.67 mSv/día), pero hay tormentas de polvo que tapan tus paneles.")}</small></button>
-      <button class="choice ${pickDest==='moon'?'on':''}" onclick="pickDest='moon';showIntro()"><b>🌕 ${T("The Moon (harder)","La Luna (más difícil)")}</b><small>${T("No air: twice the radiation (1.37 mSv/day). At the south pole, mountains sometimes hide the Sun.","Sin aire: el doble de radiación (1.37 mSv/día). En el polo sur, las montañas a veces tapan el Sol.")}</small></button></div>`
+      <button class="choice ${pickDest==='mars'?'on':''}" onclick="pickDest='mars';showIntro()"><b>🔴 ${T("Mars","Marte")}</b><small>${T("Thin air blocks some radiation (0.67 mSv/day), but long dust storms cover your panels. No supply rockets: you are on your own!","El aire delgado frena algo de radiación (0.67 mSv/día), pero hay tormentas de polvo largas que tapan tus paneles. Sin cohetes de provisiones: ¡están solos!")}</small></button>
+      <button class="choice ${pickDest==='moon'?'on':''}" onclick="pickDest='moon';showIntro()"><b>🌕 ${T("The Moon (harder)","La Luna (más difícil)")}</b><small>${T("No air: twice the radiation (1.37 mSv/day), and a 14-day lunar night! Supply rockets from Earth help.","Sin aire: el doble de radiación (1.37 mSv/día) ¡y una noche lunar de 14 días! Cohetes de la Tierra traen provisiones.")}</small></button></div>`
    + `<h3>${T("2. Choose your mission specialist","2. Elige a tu especialista")}</h3><div class="picks">${sp}</div>`
    + `<button class="go" onclick="startMission()">${T("Start mission 🚀","Empezar misión 🚀")}</button>`
    + `<p style="text-align:center;font-size:13px;color:var(--muted)">${T("Tip: the 📖 How it works tab explains everything.","Tip: la pestaña 📖 Cómo funciona explica todo.")}</p>`;
@@ -320,14 +359,18 @@ const FINDS = [
   {txt:["🧊 Your team found buried ice! You melt it and split the water: +3 kg oxygen.","🧊 ¡Tu equipo encontró hielo enterrado! Lo derriten y separan el agua: +3 kg de oxígeno."], fx:s=>s.oxy+=3},
   {txt:["🪨 A strange layered rock! It might show Mars once had lakes: +2 science points.","🪨 ¡Una roca rara con capas! Quizá Marte tuvo lagos: +2 puntos de ciencia."], fx:s=>s.sci+=2},
   {txt:["🌋 You found a lava tube, a natural cave that blocks radiation: −2 mSv for the crew.","🌋 Encontraste un tubo de lava, una cueva natural que bloquea la radiación: −2 mSv para la tripulación."], fx:s=>s.rad=Math.max(0,s.rad-2)},
-  {txt:["💨 A dusty wind scratched a space suit. Repairs cost 1 meal of time: −1 meal.","💨 Un viento con polvo rayó un traje espacial. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1}
+  {txt:["💨 A dusty wind scratched a space suit. Repairs cost 1 meal of time: −1 meal.","💨 Un viento con polvo rayó un traje espacial. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1},
+  {txt:["🌀 A dust devil passed by and cleaned your solar panels! +2 ⚡ tomorrow. (Real: this happened to the Spirit rover!)","🌀 ¡Un remolino de polvo pasó y limpió tus paneles solares! +2 ⚡ mañana. (Real: ¡le pasó al rover Spirit!)"], fx:s=>{s.bonusSol=s.sol+1}},
+  {txt:["⚠️ An explorer walked into a dust devil and got knocked over: −15 health.","⚠️ Un explorador se metió en un remolino de polvo y se cayó: −15 de salud."], fx:s=>{const e=explorers(); if(e.length) s.hp[e[0]]=Math.max(0,s.hp[e[0]]-15)}}
 ];
 
 const FINDS_MOON = [
   {txt:["🧊 Your team found ice in a crater that never sees the Sun! You melt it and split the water: +3 kg oxygen.","🧊 ¡Tu equipo encontró hielo en un cráter que nunca ve el Sol! Lo derriten y separan el agua: +3 kg de oxígeno."], fx:s=>s.oxy+=3},
   {txt:["🪨 A very old rock, more than 3,800 million years old! +2 science points.","🪨 ¡Una roca muy vieja, de más de 3,800 millones de años! +2 puntos de ciencia."], fx:s=>s.sci+=2},
   {txt:["🌋 You found a lava tube, a natural cave that blocks radiation: −2 mSv for the crew.","🌋 Encontraste un tubo de lava, una cueva natural que bloquea la radiación: −2 mSv para la tripulación."], fx:s=>s.rad=Math.max(0,s.rad-2)},
-  {txt:["💨 Sharp moon dust scratched a space suit. Repairs cost time: −1 meal.","💨 El polvo lunar es filoso y rayó un traje. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1}
+  {txt:["💨 Sharp moon dust scratched a space suit. Repairs cost time: −1 meal.","💨 El polvo lunar es filoso y rayó un traje. Repararlo cuesta tiempo: −1 comida."], fx:s=>s.food-=1},
+  {txt:["⚠️ An explorer slipped down a crater wall: −15 health.","⚠️ Un explorador se resbaló en la pared de un cráter: −15 de salud."], fx:s=>{const e=explorers(); if(e.length) s.hp[e[0]]=Math.max(0,s.hp[e[0]]-15)}},
+  {txt:["🪨 You dug up regolith (moon soil). It is about 40% oxygen! You cook some out: +2 kg oxygen.","🪨 Sacaste regolito (tierra lunar). ¡Tiene como 40% de oxígeno! Lo calientan y sacan un poco: +2 kg de oxígeno."], fx:s=>s.oxy+=2}
 ];
 // ================= GAME STATE =================
 let S, plan;
@@ -343,17 +386,46 @@ function newGame(){
   }
   const pool = [...REAL_FLARES].sort(()=>Math.random()-.5);
   S.stormSols.sort((a,b)=>a-b).forEach((d,i)=>S.flares[d]=pool[i]);
-  for(let d=1; d<=CONFIG.sols; d++) if(Math.random()<CONFIG.dustChance && !S.stormSols.includes(d)) S.dustSols.push(d);
+  if(DEST==='moon'){ for(let d=CONFIG.nightStart; d<=CONFIG.nightEnd; d++) S.dustSols.push(d); }
+  else { // Mars: dust storms that last 2 or 3 sols (never back to back)
+    for(let tries=0, made=0; made<CONFIG.dustStorms && tries<60; tries++){
+      const st = 4 + rand(CONFIG.sols-6), len = 2 + rand(2);
+      let ok = true; for(let d=st-1; d<=st+len; d++) if(S.dustSols.includes(d)) ok = false;
+      if(!ok) continue;
+      for(let d=st; d<st+len && d<=CONFIG.sols; d++) S.dustSols.push(d);
+      made++;
+    }
+  }
   plan = {oxy:0, food:0, shield:0, explore:0};
   document.getElementById('log').innerHTML='';
   log(T(`⭐ Mission specialist: ${CREW[LEAD].name} the ${SPECS[LEAD].en[0]}.`,`⭐ Especialista: ${CREW[LEAD].name}, ${SPECS[LEAD].es[0].toLowerCase()}.`));
   log(T("🚀 Landing complete! The crew is ready. Good luck, Commander.","🚀 ¡Aterrizaje completo! La tripulación está lista. Suerte, Comandante."));
   render();
 }
-function energyToday(){return Math.max(0,(S.dustSols.includes(S.sol) ? CONFIG.energyDust : CONFIG.energyNormal) - (S.penaltySol===S.sol ? S.penalty : 0) - CONFIG.sickPenalty*sickCount())}
+function energyToday(){return Math.max(0,(S.dustSols.includes(S.sol) ? CONFIG.energyDust : CONFIG.energyNormal) - (S.penaltySol===S.sol ? S.penalty : 0) + (S.bonusSol===S.sol ? 2 : 0) - CONFIG.sickPenalty*sickCount())}
+function dustLeft(){let n=0; for(let d=S.sol; S.dustSols.includes(d); d++) n++; return n;}
+function rocketToday(){return DEST==='moon' && CONFIG.rocketSols.includes(S.sol) && !S.over}
 function sickCount(){return S.resting.filter(Boolean).length}
 function healthy(){return [0,1,2,3].filter(i=>!S.resting[i])}
-function explorers(){const h=healthy(); return h.slice(Math.max(0,h.length-Math.min(plan.explore,3)));}
+function explorers(){ // the dinos you picked go first; if you only pressed +, Delta, then Sigma, then Tau go
+  const h = healthy(), n = Math.min(plan.explore, 3, h.length);
+  const team = (plan.crew||[]).filter(i=>h.includes(i)).slice(0, n);
+  h.slice().reverse().forEach(i=>{ if(team.length<n && !team.includes(i)) team.push(i); });   // same dinos as always, so the rest of the crew stays rested
+  return team;
+}
+function pickExplorer(i){
+  if(S.over) return;
+  plan.crew = plan.crew || [];
+  if(S.resting[i]){ log(T(`🩹 ${CREW[i].name} is in the sickbay and can't explore today.`,`🩹 ${CREW[i].name} está en la enfermería y hoy no puede explorar.`)); return render(); }
+  const team = explorers();
+  if(team.includes(i)){ plan.crew = team.filter(x=>x!==i); plan.explore--; }
+  else {
+    if(plan.explore>=CONFIG.exploreMax){ plan.crew = team.slice(0,-1).concat(i); }   // full team: swap the last one
+    else if(used()>=energyToday()) return;
+    else { plan.crew = team.concat(i); plan.explore++; }
+  }
+  render();
+}
 function used(){return plan.oxy+plan.food+plan.shield+plan.explore}
 
 function change(k,d){
@@ -363,7 +435,9 @@ function change(k,d){
   if(k==='shield' && v>CONFIG.shieldMax) return;
   if(k==='explore' && (v>CONFIG.exploreMax || v>healthy().length)) return;
   if(d>0 && used()>=energyToday()) return;
-  plan[k]=v; render();
+  plan[k]=v;
+  if(k==='explore') plan.crew = explorers();
+  render();
 }
 
 function nextReport(){
@@ -396,13 +470,14 @@ function endSol(){
     else if(S.resting[i] && S.hp[i] >= CONFIG.hpBack){ S.resting[i] = false; log(T(`💪 ${CREW[i].name} is back to work!`,`💪 ¡${CREW[i].name} regresó a trabajar!`)); }
   }
   sickToday.forEach(i=>log(T(`🩹 ${CREW[i].name} is too tired and goes to the sickbay. You get ${CONFIG.sickPenalty} ⚡ less while ${CREW[i].name} rests.`,`🩹 ${CREW[i].name} está muy cansado y va a la enfermería. Tienes ${CONFIG.sickPenalty} ⚡ menos mientras descansa.`)));
-  const pts = (LEAD===3 && plan.explore===3) ? 6 : CONFIG.explorePoints[plan.explore];
+  const deltaOut = LEAD===3 && ex.includes(3);
+  const pts = (deltaOut && plan.explore===3) ? 6 : CONFIG.explorePoints[plan.explore];
   S.sci += pts;
   let msg = T(`Sol ${S.sol}: made ${(plan.oxy*CONFIG.o2PerEnergy).toFixed(1)} kg O₂, ${plan.food*CONFIG.mealsPerEnergy} meals, +${pts} science. Radiation today: ${dose.toFixed(2)} mSv.`,
               `Sol ${S.sol}: hiciste ${(plan.oxy*CONFIG.o2PerEnergy).toFixed(1)} kg de O₂, ${plan.food*CONFIG.mealsPerEnergy} comidas, +${pts} de ciencia. Radiación hoy: ${dose.toFixed(2)} mSv.`);
   if(storm) msg = T(`☀️ STORM! `,`☀️ ¡TORMENTA! `) + msg + (plan.shield>=2 ? T(" The shield did its job! 🛡️"," ¡El escudo funcionó! 🛡️") : T(" Ouch, the shield was weak."," Auch, el escudo estaba débil."));
   log(msg);
-  if(plan.explore>0 && Math.random()<(LEAD===3?0.6:0.3)){const F=DEST==='moon'?FINDS_MOON:FINDS; const f=F[rand(F.length)]; f.fx(S); log(T(...f.txt));}
+  if(plan.explore>0 && Math.random()<(deltaOut?0.6:0.3)){const F=DEST==='moon'?FINDS_MOON:FINDS; const f=F[rand(F.length)]; f.fx(S); log(T(...f.txt));}
   S.history.push({sol:S.sol, ...plan, storm, dust:S.dustSols.includes(S.sol), tankOxy:S.oxy, tankFood:S.food, rad:S.rad, sci:S.sci, sick:sickCount()});
 
   if(S.sol%5===0){ return askQuiz(afterSol); }
@@ -424,6 +499,8 @@ function afterSol(){
   if(S.sol>=CONFIG.sols){return finish(true,"");}
   S.sol++;
   plan = {oxy:0, food:0, shield:0, explore:0};
+  if(rocketToday()){ S.oxy=Math.min(CONFIG.maxOxy,S.oxy+CONFIG.rocketOxy); S.food=Math.min(CONFIG.maxFood,S.food+CONFIG.rocketFood);
+    log(T(`🚀 The supply rocket from Earth landed! +${CONFIG.rocketOxy} kg oxygen and +${CONFIG.rocketFood} meals.`,`🚀 ¡Aterrizó el cohete de provisiones de la Tierra! +${CONFIG.rocketOxy} kg de oxígeno y +${CONFIG.rocketFood} comidas.`)); }
   render();
   // little trip around the solar system, then maybe a surprise dilemma (never on storm days)
   dayTransition(()=>{ if(!S.stormSols.includes(S.sol) && Math.random() < CONFIG.dilemmaChance) askDilemma(); });
@@ -467,6 +544,14 @@ function finish(alive,cause){
   const why = {oxygen:T("The oxygen tank ran empty.","Se acabó el oxígeno del tanque."), food:T("The food ran out.","Se acabó la comida."), radiation:T("The crew got too much radiation.","La tripulación recibió demasiada radiación."), tired:T("All 4 dinos ended up in the sickbay. Nobody could run the base!","Los 4 dinos terminaron en la enfermería. ¡Nadie pudo manejar la base!")}[cause];
   let h = alive ? T(`<h2>Mission complete! ${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</h2><p>Your crew survived 30 sols on Mars and sent ${S.reportsMade} of 6 science reports.</p>`,
                     `<h2>¡Misión cumplida! ${"⭐".repeat(stars)}${"☆".repeat(3-stars)}</h2><p>Tu tripulación sobrevivió 30 soles en Marte y envió ${S.reportsMade} de 6 informes de ciencia.</p>`)
+            + `<div class="launch"><svg viewBox="0 0 300 150"><rect width="300" height="150" rx="12" fill="#0b0d1e"/>
+               ${Array.from({length:30},(_,k)=>`<circle cx="${(k*53)%300}" cy="${(k*37)%150}" r="${k%4?0.8:1.5}" fill="#fff" opacity=".7"/>`).join("")}
+               <circle cx="262" cy="30" r="14" fill="#3d7bd9"/><path d="M254 24 q6 -4 11 2 q-4 6 -10 4z" fill="#4cd37a"/>
+               <path d="M0 150 Q80 120 160 140 T300 135 V150Z" fill="${DEST==='moon'?'#9a9aa2':'#b5522c'}"/>
+               <g class="rocketUp"><path d="M150 70 C160 80 161 105 160 120 H140 C139 105 140 80 150 70Z" fill="#f2f2f6" stroke="#1b0f0c" stroke-width="1.5"/>
+               <circle cx="150" cy="95" r="5" fill="#57c7ff" stroke="#1b0f0c"/><path d="M140 108 L132 126 H141Z M160 108 L168 126 H159Z" fill="#ff5a5a"/>
+               <path class="flame" d="M143 121 Q150 146 157 121Z" fill="#ffb23d"/></g></svg>
+               <p>${T("🚀 Your science samples blast off to Earth! (idea from the PiRex: En el Espacio 2 game)","🚀 ¡Tus muestras de ciencia despegan rumbo a la Tierra! (idea del juego PiRex: En el Espacio 2)")}</p></div>`
                 : T(`<h2>Mission failed on sol ${S.sol} 💥</h2><p>${why}</p>`, `<h2>La misión falló en el sol ${S.sol} 💥</h2><p>${why}</p>`);
   h += T(`<h3>🤖 Coach: how to do better</h3>`,`<h3>🤖 Coach: cómo mejorar</h3>`) + coach().map(t=>`<div class="tip">${t}</div>`).join('');
   h += `<button class="go" onclick="closeModal('end');startMission()">${T("Play again (new storms!) 🔄","Jugar otra vez (¡nuevas tormentas!) 🔄")}</button><button class="choice" style="text-align:center" onclick="closeModal('end');showIntro()">${T("Change place or specialist 🌕🔴","Cambiar lugar o especialista 🌕🔴")}</button>`;
@@ -489,6 +574,7 @@ function coach(){
   if(S.reportsMissed) t.push(T(`You missed ${S.reportsMissed} report(s). Tip: 2 ⚡ on exploring gives 3 points, but 1 ⚡ only gives 1. Bigger trips are worth more!`,`Perdiste ${S.reportsMissed} informe(s). Tip: 2 ⚡ en explorar dan 3 puntos, pero 1 ⚡ solo da 1. ¡Los viajes grandes valen más!`));
   if(S.restDays>=3) t.push(T(`Your dinos spent ${S.restDays} days in the sickbay. Storms without shield and too much exploring make them tired. A rested crew gives you more ⚡!`,`Tus dinos pasaron ${S.restDays} días en la enfermería. Las tormentas sin escudo y explorar demasiado los cansan. ¡Una tripulación descansada te da más ⚡!`));
   if(S.cause==="radiation" && DEST==="moon") t.push(T(`On the Moon there is no air to block radiation (1.37 mSv every day). Try putting 1 ⚡ on the shield on normal days too.`,`En la Luna no hay aire que frene la radiación (1.37 mSv cada día). Prueba poner 1 ⚡ en el escudo también en días normales.`));
+  if(DEST==='moon' && !S.alive && (S.cause==='oxygen'||S.cause==='food') && S.sol>=CONFIG.nightStart) t.push(T(`The lunar night gives only ${CONFIG.energyDust} ⚡. Before day ${CONFIG.nightStart}, fill the oxygen tank and the food store, like a squirrel before winter! 🐿️`,`La noche lunar da solo ${CONFIG.energyDust} ⚡. Antes del día ${CONFIG.nightStart}, llena el tanque de oxígeno y la despensa, ¡como una ardilla antes del invierno! 🐿️`));
   if(!t.length) t.push(T(`Amazing work! Try again: storms and dust change every game. Can you get all 6 reports? 🏆`,`¡Increíble! Juega otra vez: las tormentas y el polvo cambian en cada partida. ¿Puedes lograr los 6 informes? 🏆`));
   return t;
 }
@@ -501,7 +587,11 @@ function render(){
   document.getElementById('dayTitle').textContent=T(`Sol ${S.sol} of ${CONFIG.sols}`,`Sol ${S.sol} de ${CONFIG.sols}`);
   document.getElementById('eTotal').textContent=e;
   document.getElementById('eLeft').textContent=e-used();
-  for(const k in plan) document.getElementById('n_'+k).textContent=plan[k];
+  for(const k of ['oxy','food','shield','explore']) document.getElementById('n_'+k).textContent=plan[k];
+  const team = S.over ? [] : explorers();
+  document.getElementById('exPick').innerHTML = `<span>${T("Who goes?","¿Quién va?")}</span>` + CREW.map((c,i)=>{
+    const hp = S.hp[i], col = hp<35?'#ff5a5a':hp<60?'#ffd23d':'#4cd37a';
+    return `<button class="${team.includes(i)?'on':''}" ${S.resting[i]||S.over?'disabled':''} onclick="pickExplorer(${i})" title="${T('Health','Salud')} ${hp}">${team.includes(i)?'🔭':S.resting[i]?'🛏️':'🦖'} ${c.name}<i><b style="width:${hp}%;background:${col}"></b></i></button>`; }).join("");
   bar('oxy',S.oxy,CONFIG.maxOxy,T(`${S.oxy.toFixed(1)} kg (crew uses 3.36/sol)`,`${S.oxy.toFixed(1)} kg (gastan 3.36/sol)`));
   bar('food',S.food,CONFIG.maxFood,T(`${S.food} meals (crew eats 4/sol)`,`${S.food} comidas (comen 4/sol)`));
   bar('rad',S.rad,CONFIG.doseLimit,T(`${S.rad.toFixed(1)} / ${CONFIG.doseLimit} mSv limit`,`${S.rad.toFixed(1)} / ${CONFIG.doseLimit} mSv límite`));
@@ -512,12 +602,54 @@ function render(){
   if(!S.over){
     if(S.stormSols.includes(S.sol)) a+=T(`<div class="alert">☀️ <b>Solar storm hitting Mars TODAY!</b> Radiation is about ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} times higher. Use the shield!</div>`,`<div class="alert">☀️ <b>¡Tormenta solar en Marte HOY!</b> La radiación es como ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} veces más alta. ¡Usa el escudo!</div>`);
     if(S.stormSols.includes(S.sol+1)){const f=S.flares[S.sol+1]; a+=T(`<div class="alert">🛰️ <b>NASA alert:</b> a big ${f.cls} flare just exploded on the Sun (like the real one on ${f.date[0]}). Its radiation reaches Mars <b>tomorrow</b>.</div>`,`<div class="alert">🛰️ <b>Alerta de la NASA:</b> una gran llamarada ${f.cls} acaba de explotar en el Sol (como la real del ${f.date[1]}). Su radiación llega a Marte <b>mañana</b>.</div>`);}
-    if(S.dustSols.includes(S.sol)) a+= DEST==='moon' ? T(`<div class="alert dust">🌑 <b>Shadow day!</b> Mountains at the south pole block the Sun, so you only get ${CONFIG.energyDust} ⚡ today.</div>`,`<div class="alert dust">🌑 <b>¡Día de sombra!</b> Las montañas del polo sur tapan el Sol, así que hoy solo tienes ${CONFIG.energyDust} ⚡.</div>`) : T(`<div class="alert dust">🌪️ <b>Dust storm!</b> Dust covers the solar panels, so you only get ${CONFIG.energyDust} ⚡ today.</div>`,`<div class="alert dust">🌪️ <b>¡Tormenta de polvo!</b> El polvo tapa los paneles solares, así que hoy solo tienes ${CONFIG.energyDust} ⚡.</div>`);
+    if(DEST==='moon'){
+      if(S.dustSols.includes(S.sol)) a+=T(`<div class="alert dust">🌑 <b>Lunar night!</b> No sunlight, so only ${CONFIG.energyDust} ⚡ from the batteries. ${dustLeft()} day(s) until sunrise.</div>`,`<div class="alert dust">🌑 <b>¡Noche lunar!</b> No hay Sol, así que solo tienes ${CONFIG.energyDust} ⚡ de las baterías. Faltan ${dustLeft()} día(s) para que amanezca.</div>`);
+      else if(S.sol<CONFIG.nightStart && S.sol>=CONFIG.nightStart-5) a+=T(`<div class="alert dust">🌒 <b>The lunar night starts on day ${CONFIG.nightStart}</b> and lasts 14 days. Fill the oxygen tank and save food now!</div>`,`<div class="alert dust">🌒 <b>La noche lunar empieza el día ${CONFIG.nightStart}</b> y dura 14 días. ¡Llena el tanque de oxígeno y guarda comida ya!</div>`);
+      const nr = CONFIG.rocketSols.find(d=>d>=S.sol);
+      if(rocketToday()) a+=T(`<div class="alert calm" style="flex:0">🚀 <b>The supply rocket landed today!</b> +${CONFIG.rocketOxy} kg O₂ and +${CONFIG.rocketFood} meals.</div>`,`<div class="alert calm" style="flex:0">🚀 <b>¡Hoy aterrizó el cohete de provisiones!</b> +${CONFIG.rocketOxy} kg de O₂ y +${CONFIG.rocketFood} comidas.</div>`);
+      else if(nr && nr-S.sol<=2) a+=T(`<div class="alert calm" style="flex:0">🚀 A supply rocket left Earth. It lands on <b>day ${nr}</b>.</div>`,`<div class="alert calm" style="flex:0">🚀 Un cohete de provisiones salió de la Tierra. Aterriza el <b>día ${nr}</b>.</div>`);
+    } else {
+      if(S.dustSols.includes(S.sol)) a+=T(`<div class="alert dust">🌪️ <b>Dust storm!</b> Dust covers the solar panels, so you only get ${CONFIG.energyDust} ⚡. It lasts ${dustLeft()} more sol(s).</div>`,`<div class="alert dust">🌪️ <b>¡Tormenta de polvo!</b> El polvo tapa los paneles, así que solo tienes ${CONFIG.energyDust} ⚡. Dura ${dustLeft()} sol(es) más.</div>`);
+      else if(S.dustSols.includes(S.sol+1)){ let n=0; for(let d=S.sol+1; S.dustSols.includes(d); d++) n++;
+        a+=T(`<div class="alert dust">🛰️ <b>Weather alert:</b> a NASA orbiter sees a dust storm coming <b>tomorrow</b>. It will last ${n} sols.</div>`,`<div class="alert dust">🛰️ <b>Alerta del clima:</b> un satélite de la NASA ve una tormenta de polvo que llega <b>mañana</b>. Durará ${n} soles.</div>`); }
+    }
   }
   if(!a && !S.over) a = T(`<div class="alert calm">📰 No news from NASA today. A calm sol! ✅</div>`,`<div class="alert calm">📰 Hoy no hay noticias de la NASA. ¡Un sol tranquilo! ✅</div>`);
   document.getElementById('alerts').innerHTML=a;
   document.getElementById('goBtn').disabled=S.over;
+  renderNeeds();
   drawScene();
+}
+
+// ================= NEEDS: what each dino is missing (updates while you share ⚡) =================
+function crewNeeds(){
+  const e = CONFIG.o2PerEnergy, all = [];
+  const oxAfter = S.oxy + plan.oxy*e - CONFIG.crew*CONFIG.o2PerPerson;
+  if(oxAfter < 3) { const n = Math.ceil((3-oxAfter)/e - 1e-9); all.push(T(`🫁 oxygen: +${n} ⚡`,`🫁 oxígeno: +${n} ⚡`)); }
+  const foodAfter = S.food + plan.food*CONFIG.mealsPerEnergy + (LEAD===1 && plan.food>=2 ? 1 : 0) - CONFIG.crew*CONFIG.mealsPerPerson;
+  if(foodAfter < 2) { const n = Math.ceil((2-foodAfter)/CONFIG.mealsPerEnergy - 1e-9); all.push(T(`🥬 food: +${n} ⚡`,`🥬 comida: +${n} ⚡`)); }
+  if(S.stormSols.includes(S.sol) && plan.shield < 2) all.push(T(`🛡️ storm today: shield +${2-plan.shield} ⚡ or more`,`🛡️ tormenta hoy: escudo +${2-plan.shield} ⚡ o más`));
+  if(S.rad > CONFIG.doseLimit*0.75 && plan.shield < 1) all.push(T("☢️ too much radiation: use the shield","☢️ mucha radiación: usa el escudo"));
+  return all;
+}
+function dinoNeed(i, team){
+  const hp = S.hp[i], out = team.includes(i);
+  if(S.resting[i]) return [false, T(`🛏️ In the sickbay: needs ${CONFIG.hpBack-hp} more health to come back.`,`🛏️ En la enfermería: le faltan ${CONFIG.hpBack-hp} de salud para regresar.`)];
+  if(out && hp < 50) return [false, T(`😴 Too tired to explore! Keep me at the base.`,`😴 ¡Muy cansado para explorar! Déjame en la base.`)];
+  if(hp < CONFIG.hpSick+15) return [false, T(`😴 Almost sick! Needs to rest in the base, or goes to the sickbay below ${CONFIG.hpSick}.`,`😴 ¡Casi enfermo! Necesita descansar en la base, o abajo de ${CONFIG.hpSick} se va a la enfermería.`)];
+  if(out) return [true, T(`🔭 Exploring today (−${CONFIG.hpExplore} health).`,`🔭 Explora hoy (−${CONFIG.hpExplore} de salud).`)];
+  if(hp < 70) return [true, T(`🙂 A bit tired: a day in the base helps (+${CONFIG.hpSleep}).`,`🙂 Un poco cansado: un día en la base le ayuda (+${CONFIG.hpSleep}).`)];
+  return [true, T("✅ Feeling great!","✅ ¡Se siente súper!")];
+}
+function renderNeeds(){
+  const box = document.getElementById('needs');
+  if(S.over){ box.innerHTML = ''; box.hidden = true; return; }
+  box.hidden = false;
+  const all = crewNeeds(), team = explorers();
+  box.innerHTML = `<h3>${T("🦖 What does each dino need?","🦖 ¿Qué le falta a cada uno?")}</h3>
+    <div class="all ${all.length?'bad':'ok'}">${all.length ? T("<b>Everyone needs:</b> ","<b>A todos les falta:</b> ") + all.join(" · ") : T("✅ With this plan, everyone has enough air and food today.","✅ Con este plan, a todos les alcanza el aire y la comida hoy.")}</div>`
+    + CREW.map((c,i)=>{ const hp = S.hp[i], col = hp<35?'#ff5a5a':hp<60?'#ffd23d':'#4cd37a', [ok, txt] = dinoNeed(i, team);
+      return `<div class="d"><b>${i===LEAD?'⭐':''}${c.name}</b><i><u style="width:${hp}%;background:${col}"></u></i><span class="${ok?'':'bad'}">${txt}</span></div>`; }).join("");
 }
 
 // ================= SCENE: the base and the crew (original drawings) =================
@@ -565,6 +697,8 @@ function astro(x,y,c,m,cls,label,act){
   <text x="0" y="66" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff3ea" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">${label}</text></g>`;
 }
 function drawScene(){
+  const vb = document.getElementById('viewBtn'); if(vb) vb.textContent = USE3D ? T("🖼️ 2D view","🖼️ Vista 2D") : T("🧊 3D view","🧊 Vista 3D");
+  if(USE3D){ update3D(); return; }
   const storm = S.stormSols.includes(S.sol) && !S.over;
   const warn = S.stormSols.includes(S.sol+1) && !S.over;
   const dust = S.dustSols.includes(S.sol) && !S.over;
@@ -578,7 +712,7 @@ function drawScene(){
   if(moon){ for(let i=0;i<60;i++) g+=`<circle cx="${(i*163)%960}" cy="${(i*71)%170}" r="${i%4?1:1.8}" fill="#fff" opacity=".8"/>`;
     g+=`<circle cx="760" cy="70" r="26" fill="#3d7bd9"/><path d="M745 58 q10 -6 18 4 q-6 10 -16 6z M766 76 q10 2 12 12 q-12 2 -14 -6z" fill="#4cd37a"/><circle cx="760" cy="70" r="26" fill="none" stroke="#bfe6ff" stroke-width="2" opacity=".6"/>`; }
   // sun (with a flare when NASA sends an alert)
-  g += `<circle cx="80" cy="60" r="${warn||storm?48:34}" fill="url(#sun)" ${warn||storm?'class="pulse"':''}/>`;
+  if(!(moon && dust && !warn && !storm)) g += `<circle cx="80" cy="60" r="${warn||storm?48:34}" fill="url(#sun)" ${warn||storm?'class="pulse"':''}/>`;
   if(warn) g += `<text x="128" y="50" font-size="15" font-weight="bold" fill="#fff">${T("FLARE! ☀️💥","¡LLAMARADA! ☀️💥")}</text>`;
   if(storm) for(let i=0;i<14;i++){const x=150+i*58, y=20+(i*37)%90; g+=`<line x1="${x}" y1="${y}" x2="${x+26}" y2="${y+22}" stroke="#ffe6fb" stroke-width="3" class="pulse" style="animation-delay:${i/7}s"/>`;}
   // hills and ground
@@ -611,6 +745,12 @@ function drawScene(){
         <rect x="-28" y="-36" width="34" height="16" rx="4" fill="#57c7ff" stroke="#1b0f0c" stroke-width="2"/>
         <circle cx="-26" cy="8" r="11" fill="#333"/><circle cx="0" cy="8" r="11" fill="#333"/><circle cx="26" cy="8" r="11" fill="#333"/>
         <line x1="20" y1="-22" x2="30" y2="-48" stroke="#555" stroke-width="3"/><circle cx="30" cy="-50" r="5" fill="#ffd23d"/></g>`;
+  // supply rocket on the landing pad (Moon)
+  if(rocketToday()) g += `<g transform="translate(652,148) scale(.8)"><ellipse cx="0" cy="118" rx="44" ry="7" fill="#444" opacity=".6"/>
+        <path d="M0 0 C16 18 18 60 16 100 H-16 C-18 60 -16 18 0 0Z" fill="#f2f2f6" stroke="#1b0f0c" stroke-width="2"/>
+        <circle cx="0" cy="40" r="8" fill="#57c7ff" stroke="#1b0f0c" stroke-width="2"/>
+        <path d="M-16 74 L-30 112 H-14Z M16 74 L30 112 H14Z" fill="#ff5a5a" stroke="#1b0f0c" stroke-width="2"/>
+        <text x="0" y="-8" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff" stroke="#1b0f0c" stroke-width="3" paint-order="stroke">${T("Supplies!","¡Provisiones!")}</text></g>`;
   // crew: explorers go outside, the rest stay in the dome
   const jobs = [];
   for(let i=0;i<plan.oxy && jobs.length<4;i+=3) jobs.push("🫁");
@@ -634,7 +774,7 @@ function drawScene(){
   // big title for the day
   g += `<text x="940" y="34" text-anchor="end" font-size="22" font-weight="bold" fill="#fff3ea" stroke="#1b0f0c" stroke-width="4" paint-order="stroke">${T(`Sol ${S.sol}`,`Sol ${S.sol}`)}</text>`;
   if(storm) g += `<text x="940" y="60" text-anchor="end" font-size="15" font-weight="bold" fill="#fff" stroke="#7a1d6b" stroke-width="4" paint-order="stroke">☢️ ${T("SOLAR STORM!","¡TORMENTA SOLAR!")}</text>`;
-  if(dust) g += `<text x="940" y="60" text-anchor="end" font-size="15" font-weight="bold" fill="#fff" stroke="#5a3a1a" stroke-width="4" paint-order="stroke">${moon ? T("🌑 SHADOW DAY","🌑 DÍA DE SOMBRA") : T("🌪️ DUST STORM","🌪️ TORMENTA DE POLVO")}</text>`;
+  if(dust) g += `<text x="940" y="60" text-anchor="end" font-size="15" font-weight="bold" fill="#fff" stroke="#5a3a1a" stroke-width="4" paint-order="stroke">${moon ? T("🌑 LUNAR NIGHT","🌑 NOCHE LUNAR") : T("🌪️ DUST STORM","🌪️ TORMENTA DE POLVO")}</text>`;
   if(!S.over && !TALK) g += `<text x="480" y="24" text-anchor="middle" font-size="13" fill="#fff3ea" opacity=".85">${T("👆 Tap a dino to talk!","👆 ¡Toca un dino para hablar!")}</text>`;
   document.getElementById('scene').innerHTML = g;
 }
@@ -649,7 +789,9 @@ const FACTS = [
   ["The MOXIE machine made 122 grams of oxygen on Mars! 🫁","¡La máquina MOXIE fabricó 122 gramos de oxígeno en Marte! 🫁"],
   ["Mars gets less than half the sunlight that Earth gets. ☀️","Marte recibe menos de la mitad de la luz del Sol que la Tierra. ☀️"],
   ["Water is one of the best shields against radiation! 🛡️","¡El agua es uno de los mejores escudos contra la radiación! 🛡️"],
-  ["Each of us breathes about 0.84 kg of oxygen every sol. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por sol. 🦖"]
+  ["Each of us breathes about 0.84 kg of oxygen every sol. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por sol. 🦖"],
+  ["Rockets can only leave Earth for Mars about every 26 months. No quick deliveries! 🚀","Los cohetes solo pueden salir de la Tierra a Marte cada 26 meses más o menos. ¡No hay envíos rápidos! 🚀"],
+  ["Dust on its solar panels ended NASA's InSight lander in 2022. 🌪️","El polvo en sus paneles solares terminó con el módulo InSight de la NASA en 2022. 🌪️"]
 ];
 const FACTS_MOON = [
   ["Chang'e 4 measured 1.37 mSv of radiation per day on the Moon. ☢️","Chang'e 4 midió 1.37 mSv de radiación por día en la Luna. ☢️"],
@@ -657,7 +799,10 @@ const FACTS_MOON = [
   ["Some craters at the south pole never see the Sun, and they hold ice! 🧊","¡Algunos cráteres del polo sur nunca ven el Sol y guardan hielo! 🧊"],
   ["On the Space Station, NASA recycles 98% of the water! 💧","¡En la Estación Espacial, la NASA recicla el 98% del agua! 💧"],
   ["Artemis astronauts will explore the Moon's south pole, like us! 🚀","¡Los astronautas de Artemis explorarán el polo sur de la Luna, como nosotros! 🚀"],
-  ["Each of us breathes about 0.84 kg of oxygen every day. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por día. 🦖"]
+  ["Each of us breathes about 0.84 kg of oxygen every day. 🦖","Cada uno de nosotros respira unos 0.84 kg de oxígeno por día. 🦖"],
+  ["In 2009, NASA's LCROSS crashed into a crater on purpose and found water ice! 💥","¡En 2009, LCROSS de la NASA chocó a propósito contra un cráter y encontró hielo de agua! 💥"],
+  ["Moon soil (regolith) is about 40% oxygen. We just have to get it out! 🪨","La tierra lunar (regolito) tiene como 40% de oxígeno. ¡Solo hay que sacarlo! 🪨"],
+  ["A night on the Moon lasts about 14 Earth days. Brrr! 🌑","Una noche en la Luna dura unos 14 días de la Tierra. ¡Brrr! 🌑"]
 ];
 function talk(i){
   let t;
@@ -762,6 +907,7 @@ function showTab(t){
   document.getElementById('tab_game').classList.toggle('on', t==='game');
   document.getElementById('tab_guide').classList.toggle('on', t==='guide');
   if(t==='guide') renderGuide();
+  if(t==='game' && USE3D) resize3D();
 }
 function renderGuide(){
   const moon = DEST==='moon';
@@ -771,8 +917,8 @@ function renderGuide(){
      moon ? T("On the Moon we count normal Earth days (24 hours).","En la Luna contamos días normales de la Tierra (24 horas).") : T("A sol is one day on Mars: 24 h 39 min.","Un sol es un día en Marte: 24 h 39 min.")],
     ["⚡", T("Energy","Energía"),
      T(`Your solar panels give you ${CONFIG.energyNormal} ⚡ per sol. Use the + and − buttons to share it. It is never enough for everything!`,`Tus paneles solares te dan ${CONFIG.energyNormal} ⚡ por sol. Usa los botones + y − para repartirla. ¡Nunca alcanza para todo!`),
-     moon ? T(`At the Moon's south pole, mountains sometimes hide the Sun: on shadow days you get only ${DESTS.moon.lowEnergy} ⚡.`,`En el polo sur de la Luna, las montañas a veces tapan el Sol: en días de sombra solo tienes ${DESTS.moon.lowEnergy} ⚡.`)
-          : T(`Dust storms cover the panels: on dusty sols you get only ${DESTS.mars.lowEnergy} ⚡. Real: the Opportunity rover lost power in a 2018 dust storm.`,`Las tormentas de polvo tapan los paneles: esos soles solo tienes ${DESTS.mars.lowEnergy} ⚡. Real: el rover Opportunity se quedó sin energía en una tormenta de polvo en 2018.`)],
+     moon ? T(`The lunar night lasts 14 days (day ${CONFIG.nightStart} to ${CONFIG.nightEnd}): no Sun, only ${DESTS.moon.lowEnergy} ⚡ from batteries. Fill your tanks before it starts! A supply rocket from Earth lands on days ${CONFIG.rocketSols.join(' and ')}.`,`La noche lunar dura 14 días (del día ${CONFIG.nightStart} al ${CONFIG.nightEnd}): sin Sol, solo ${DESTS.moon.lowEnergy} ⚡ de baterías. ¡Llena tus tanques antes! Un cohete de la Tierra trae provisiones los días ${CONFIG.rocketSols.join(' y ')}.`)
+          : T(`Dust storms cover the panels: on dusty sols you get only ${DESTS.mars.lowEnergy} ⚡. Storms last 2 or 3 sols, and a NASA orbiter warns you one sol before. No rockets can bring help: launches to Mars happen only every 26 months. Real: the Opportunity rover lost power in a 2018 dust storm.`,`Las tormentas de polvo tapan los paneles: esos soles solo tienes ${DESTS.mars.lowEnergy} ⚡. Duran 2 o 3 soles, y un satélite de la NASA te avisa un sol antes. Ningún cohete puede traer ayuda: solo se puede lanzar a Marte cada 26 meses. Real: el rover Opportunity se quedó sin energía en una tormenta de polvo en 2018.`)],
     ["🫁", T("Make oxygen","Fabricar oxígeno"),
      T(`1 ⚡ = ${CONFIG.o2PerEnergy} kg of oxygen. The crew breathes 3.36 kg per sol (4 × 0.84). If the tank reaches 0, the mission fails.`,`1 ⚡ = ${CONFIG.o2PerEnergy} kg de oxígeno. La tripulación respira 3.36 kg por sol (4 × 0.84). Si el tanque llega a 0, la misión falla.`),
      T("Real: an astronaut breathes about 0.84 kg of oxygen per day (NASA). NASA's MOXIE made 122 g of oxygen on planet Mars from its air.","Real: un astronauta respira unos 0.84 kg de oxígeno al día (NASA). MOXIE de la NASA fabricó 122 g de oxígeno en el planeta Marte con su aire.")],
@@ -783,7 +929,7 @@ function renderGuide(){
      T(`Each ⚡ blocks 25% of today's radiation (max 3 = 75%). Use it on storm days! ${moon?"On the Moon, 1 ⚡ every day also helps.":""}`,`Cada ⚡ bloquea 25% de la radiación de hoy (máx. 3 = 75%). ¡Úsalo en días de tormenta! ${moon?"En la Luna también ayuda poner 1 ⚡ cada día.":""}`),
      T("Real: water is one of the best shields. In the Orion capsule, astronauts build a shelter with bags of water and food.","Real: el agua es de los mejores escudos. En la cápsula Orion, los astronautas arman un refugio con bolsas de agua y comida.")],
     ["🔭", T("Explore","Explorar"),
-     T("Gives science points: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Explorers may find ice, rocks or caves. But exploring makes dinos tired (−8 health).","Da puntos de ciencia: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Los exploradores pueden encontrar hielo, rocas o cuevas. Pero explorar cansa a los dinos (−8 de salud)."),
+     T("Gives science points: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Explorers may find ice, rocks or caves. But exploring makes dinos tired (−8 health). Tap the dino buttons under Explore to choose who goes. Send dinos with a green health bar, and keep some at the base so they don't all get tired at the same time!","Da puntos de ciencia: 1 ⚡ = 1, 2 ⚡ = 3, 3 ⚡ = 5. Los exploradores pueden encontrar hielo, rocas o cuevas. Pero explorar cansa a los dinos (−8 de salud). Toca los botones de dinos debajo de Explorar para elegir quién va. Manda dinos con la barra de salud verde y deja algunos en la base, ¡para que no se cansen todos al mismo tiempo!"),
      moon ? T("Real: craters at the Moon's south pole that never see the Sun hold ice.","Real: los cráteres del polo sur de la Luna que nunca ven el Sol guardan hielo.") : T("Real: Mars has ice under the ground and layered rocks from old lakes.","Real: Marte tiene hielo bajo el suelo y rocas con capas de lagos antiguos.")],
     ["☢️", T("Radiation","Radiación"),
      T(`Every sol the crew gets ${CONFIG.normalDose} mSv. A solar storm is about ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} times more. If the total passes ${CONFIG.doseLimit} mSv, the mission fails. NASA warns you one sol before a storm.`,`Cada sol la tripulación recibe ${CONFIG.normalDose} mSv. Una tormenta solar es como ${Math.round(CONFIG.stormDose/CONFIG.normalDose)} veces más. Si el total pasa de ${CONFIG.doseLimit} mSv, la misión falla. La NASA te avisa un sol antes de una tormenta.`),
@@ -801,7 +947,7 @@ function renderGuide(){
     ["🤖", T("The coach","El coach"),
      T("When the mission ends, the coach looks at your game and tells you what to do better next time.","Cuando termina la misión, el coach revisa tu partida y te dice qué hacer mejor la próxima vez."), ""],
     ["🌕🔴", T("Moon or Mars?","¿Luna o Marte?"),
-     T("Mars has thin air that blocks some radiation, but dust storms. The Moon has no air, so radiation is double: it is the harder mission.","Marte tiene aire delgado que frena algo de radiación, pero hay tormentas de polvo. La Luna no tiene aire y la radiación es el doble: es la misión más difícil."), ""]
+     T("Mars has thin air that blocks some radiation, but long dust storms and no help from Earth. The Moon has no air, so radiation is double, and a 14-day night: it is the harder mission, but Earth is close enough to send rockets.","Marte tiene aire delgado que frena algo de radiación, pero tormentas de polvo largas y nada de ayuda de la Tierra. La Luna no tiene aire, la radiación es el doble y hay una noche de 14 días: es la misión más difícil, pero la Tierra está cerca para mandar cohetes."), T("Lunar night and supply rockets: ideas from our teammate's game PiRex: En el Espacio 2.","Noche lunar y cohetes de provisiones: ideas del juego de nuestro compañero PiRex: En el Espacio 2.")]
   ];
   document.getElementById('guideView').innerHTML = G.map(g=>`<div class="g"><h3>${g[0]} ${g[1]}</h3><p>${g[2]}</p>${g[3]?`<p class="real">🛰️ ${g[3]}</p>`:""}</div>`).join("");
 }
@@ -810,8 +956,244 @@ function closeModal(id){document.getElementById(id).classList.remove('on')}
 let startLang = 'en';
 try { startLang = new URLSearchParams(location.search).get('lang') || localStorage.getItem('mars30_lang') || 'en'; } catch(e) {}
 LANG = startLang === 'es' ? 'es' : 'en';
+// ================= 3D VIEW (Three.js): the same base and crew, in 3D =================
+// Drag to turn the camera, tap a dino to talk. The 2D drawing is kept as a backup for slow computers.
+let USE3D = false, V3 = null;
+function can3D(){ try { return !!window.THREE && !!document.createElement('canvas').getContext('webgl'); } catch(e){ return false; } }
+function toggle3D(){ USE3D = !USE3D && can3D(); try{ localStorage.setItem('mars30_3d', USE3D?'1':'0'); }catch(e){} applyView(); }
+function applyView(){
+  if(USE3D && !can3D()) USE3D = false;
+  document.getElementById('scene').toggleAttribute('hidden', USE3D);  // an <svg> has no .hidden property
+  document.getElementById('scene3d').hidden = !USE3D;
+  document.getElementById('hud3d').hidden = !USE3D;
+  document.getElementById('viewBtn').hidden = !can3D();
+  document.getElementById('viewBtn').textContent = USE3D ? T("🖼️ 2D view","🖼️ Vista 2D") : T("🧊 3D view","🧊 Vista 3D");
+  if(USE3D){ init3D(); resize3D(); }
+  if(S) drawScene();
+}
+function label3D(text, sub, hp, w=256, h=96){
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  x.font = 'bold 30px system-ui,Arial'; x.textAlign = 'center'; x.lineWidth = 7; x.strokeStyle = '#1b0f0c'; x.fillStyle = '#fff3ea';
+  x.strokeText(text, w/2, 34); x.fillText(text, w/2, 34);
+  if(hp !== undefined){ x.fillStyle = '#1b0f0c'; x.fillRect(48, 48, 160, 16); x.fillStyle = hp<35?'#ff5a5a':hp<60?'#ffd23d':'#4cd37a'; x.fillRect(50, 50, 156*hp/100, 12); }
+  if(sub){ x.font = '30px system-ui,Arial'; x.fillText(sub, w/2, 94); }
+  const t = new THREE.CanvasTexture(c);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, depthTest:false}));
+  s.scale.set(2.9, 1.09, 1); s.renderOrder = 10; return s;
+}
+const M3 = (color, o={}) => new THREE.MeshLambertMaterial(Object.assign({color, flatShading:true}, o));
+function makeDino3D(c, i){
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
+  const suit = M3(c.suit), skin = M3(c.skin), belly = M3(c.belly), dark = M3('#1b0f0c');
+  const add = (geo, mat, x, y, z, parent=body) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
+  const torso = add(new THREE.SphereGeometry(0.55, 14, 10), suit, 0, 1.05, 0); torso.scale.set(1, 1.2, 0.9);
+  add(new THREE.SphereGeometry(0.36, 12, 8), belly, 0, 1.0, 0.33).scale.set(1, 1.3, 0.5);
+  add(new THREE.BoxGeometry(0.6, 0.7, 0.3), M3('#d9d9e0'), 0, 1.15, -0.55);             // backpack
+  for(const s of [-1,1]){
+    add(new THREE.CylinderGeometry(0.17, 0.2, 0.55, 8), suit, 0.26*s, 0.3, 0.05);        // legs
+    add(new THREE.BoxGeometry(0.28, 0.14, 0.42), dark, 0.26*s, 0.05, 0.12);              // boots
+    const arm = add(new THREE.CylinderGeometry(0.07, 0.07, 0.35, 6), suit, 0.42*s, 1.25, 0.32); arm.rotation.x = 1.1;
+  }
+  const tail = add(new THREE.ConeGeometry(0.28, 1.3, 8), skin, 0, 0.75, -0.95); tail.rotation.x = -1.9;
+  const head = new THREE.Group(); head.position.set(0, 2.05, 0.05); body.add(head);
+  add(new THREE.SphereGeometry(0.4, 14, 10), skin, 0, 0, 0, head);
+  add(new THREE.BoxGeometry(0.46, 0.3, 0.5), skin, 0, -0.06, 0.36, head);              // snout
+  add(new THREE.BoxGeometry(0.42, 0.05, 0.4), M3('#fff'), 0, -0.21, 0.38, head);        // teeth
+  for(const s of [-1,1]){ add(new THREE.SphereGeometry(0.075, 8, 6), dark, 0.18*s, 0.12, 0.33, head); }
+  for(let k=0;k<3;k++){ const sp = add(new THREE.ConeGeometry(0.08, 0.2, 5), suit, 0, 0.42-k*0.1, -0.1-k*0.17, head); sp.rotation.x = -0.4-k*0.4; }
+  const helmet = add(new THREE.SphereGeometry(0.66, 18, 12), new THREE.MeshPhongMaterial({color:'#bfe6ff', transparent:true, opacity:0.22, shininess:90, depthWrite:false}), 0, 0.02, 0.12, head);
+  helmet.renderOrder = 2;
+  g.traverse(o=>{ o.userData.dino = i; });
+  g.userData.body = body;
+  return g;
+}
+function init3D(){
+  if(V3) return;
+  const box = document.getElementById('scene3d');
+  const R = new THREE.WebGLRenderer({antialias:true});
+  R.setPixelRatio(Math.min(1.5, window.devicePixelRatio||1));
+  box.appendChild(R.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 960/360, 0.1, 600);
+  V3 = {R, scene, cam, theta:0, drag:null, dest:null, world:null, dyn:{}, labels:[], labelKey:[], t0:performance.now()};
+  V3.hemi = new THREE.HemisphereLight('#ffffff', '#553322', 0.55); scene.add(V3.hemi);
+  V3.sunL = new THREE.DirectionalLight('#fff3e0', 0.9); V3.sunL.position.set(-30, 40, 20); scene.add(V3.sunL);
+  V3.lamp = new THREE.PointLight('#ffe6b0', 0, 14); V3.lamp.position.set(0, 3.5, 0); scene.add(V3.lamp);
+  V3.flash = new THREE.PointLight('#ff4fd8', 0, 60); V3.flash.position.set(0, 12, 6); scene.add(V3.flash);
+  const D = V3.dyn;
+  // dome, floor and shield
+  D.floor = new THREE.Mesh(new THREE.CylinderGeometry(4.4, 4.6, 0.25, 32), M3('#d9d9e0')); D.floor.position.y = 0.12; scene.add(D.floor);
+  D.dome = new THREE.Mesh(new THREE.SphereGeometry(4.3, 32, 14, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshPhongMaterial({color:'#bfe6ff', transparent:true, opacity:0.16, shininess:100, side:THREE.DoubleSide, depthWrite:false}));
+  D.dome.position.y = 0.25; scene.add(D.dome);
+  D.domeLines = new THREE.Mesh(new THREE.SphereGeometry(4.32, 16, 6, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshBasicMaterial({color:'#e8f6ff', wireframe:true, transparent:true, opacity:0.25}));
+  D.domeLines.position.y = 0.25; scene.add(D.domeLines);
+  D.shield = new THREE.Mesh(new THREE.SphereGeometry(5.3, 32, 14, 0, Math.PI*2, 0, Math.PI/2), new THREE.MeshBasicMaterial({color:'#7aa8ff', transparent:true, opacity:0.2, side:THREE.DoubleSide, depthWrite:false}));
+  D.shield.position.y = 0.2; scene.add(D.shield);
+  // solar panels
+  D.panels = []; D.panelMat = M3('#2d4a8a', {emissive:'#0a1430'});
+  for(let k=0;k<3;k++){ const p = new THREE.Group();
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2, 6), M3('#666')); post.position.y = 0.6; p.add(post);
+    const pan = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 1.3), D.panelMat); pan.position.y = 1.25; pan.rotation.x = -0.5; p.add(pan);
+    pan.rotation.x = 0.55; p.position.set(-12.8 + k*2.6, 0, -2.2 + k*0.4); scene.add(p); D.panels.push(pan); }
+  // oxygen tank
+  D.tank = new THREE.Group(); D.tank.position.set(-5.6, 0, 3.4); scene.add(D.tank);
+  const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.3, 16), new THREE.MeshPhongMaterial({color:'#e8eef5', transparent:true, opacity:0.35, depthWrite:false})); shell.position.y = 1.15; D.tank.add(shell);
+  D.o2 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 2.1, 16), M3('#57c7ff', {emissive:'#0a3550'})); D.tank.add(D.o2);
+  // greenhouse plants
+  D.plants = [];
+  for(let k=0;k<12;k++){ const p = new THREE.Group();
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.12, 0.2, 8), M3('#8a5a3a')); pot.position.y = 0.35; p.add(pot);
+    const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 0), M3(k%2?'#4cd37a':'#3fb86a')); leaf.position.y = 0.6; p.add(leaf);
+    const a = Math.PI*(0.15 + 0.7*k/11); p.position.set(-Math.cos(a)*3.4, 0, -Math.sin(a)*3.0); scene.add(p); D.plants.push(p); }
+  // rover
+  D.rover = new THREE.Group();
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 1.3), M3('#e8e8ee')); chassis.position.y = 0.75; D.rover.add(chassis);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.45, 1.0), M3('#57c7ff')); cab.position.set(-0.4, 1.25, 0); D.rover.add(cab);
+  for(const x of [-0.75,0,0.75]) for(const z of [-0.7,0.7]){ const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.2, 12), M3('#333')); w.rotation.x = Math.PI/2; w.position.set(x, 0.3, z); D.rover.add(w); }
+  const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1, 4), M3('#555')); ant.position.set(0.7, 1.5, 0); D.rover.add(ant);
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), M3('#ffd23d', {emissive:'#aa7700'})); tip.position.set(0.7, 2.0, 0); D.rover.add(tip);
+  scene.add(D.rover);
+  // supply rocket (Moon)
+  D.rocket = new THREE.Group();
+  const rb = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 3.4, 16), M3('#f2f2f6')); rb.position.y = 2.1; D.rocket.add(rb);
+  const rn = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.2, 16), M3('#ff5a5a')); rn.position.y = 4.4; D.rocket.add(rn);
+  const win = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), M3('#57c7ff')); win.position.set(0, 2.9, 0.58); D.rocket.add(win);
+  for(let k=0;k<3;k++){ const f = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.9, 0.7), M3('#ff5a5a')); const a = k*2.094; f.position.set(Math.sin(a)*0.7, 0.75, Math.cos(a)*0.7); f.rotation.y = a; D.rocket.add(f); }
+  D.rocket.position.set(7.5, 0, -6); scene.add(D.rocket);
+  // crew
+  D.dinos = CREW.map((c,i)=>{ const d = makeDino3D(c, i); scene.add(d); return d; });
+  // dust / storm particles
+  const pts = new Float32Array(600*3); for(let k=0;k<600;k++){ pts[k*3] = Math.random()*60-30; pts[k*3+1] = Math.random()*12; pts[k*3+2] = Math.random()*30-18; }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  D.dust = new THREE.Points(pg, new THREE.PointsMaterial({color:'#e8c39a', size:0.25, transparent:true, opacity:0.75})); scene.add(D.dust);
+  // input: drag to turn, tap a dino to talk
+  const el = R.domElement; el.style.touchAction = 'pan-y'; el.style.cursor = 'grab';
+  el.addEventListener('pointerdown', e=>{ V3.drag = {x:e.clientX, th:V3.theta, moved:false}; });
+  el.addEventListener('pointermove', e=>{ if(!V3.drag) return; const dx = e.clientX - V3.drag.x; if(Math.abs(dx)>4) V3.drag.moved = true; V3.theta = Math.max(-1.1, Math.min(1.1, V3.drag.th - dx*0.006)); });
+  el.addEventListener('pointerup', e=>{ const d = V3.drag; V3.drag = null; if(d && !d.moved) pick3D(e); });
+  el.addEventListener('pointerleave', ()=>{ V3.drag = null; });
+  window.addEventListener('resize', resize3D);
+  requestAnimationFrame(loop3D);
+}
+function pick3D(e){
+  const r = V3.R.domElement.getBoundingClientRect();
+  const m = new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+  const ray = new THREE.Raycaster(); ray.setFromCamera(m, V3.cam);
+  const hit = ray.intersectObjects(V3.dyn.dinos, true).find(h=>h.object.userData.dino!==undefined);
+  if(hit && S && !S.over) talk(hit.object.userData.dino);
+}
+function resize3D(){
+  if(!V3) return; const w = document.getElementById('scene3d').clientWidth || 960, h = Math.round(w*(w<600 ? 0.8 : 0.42));
+  V3.R.setSize(w, h); V3.cam.aspect = w/h; V3.cam.updateProjectionMatrix();
+}
+function buildWorld3D(){
+  const moon = DEST==='moon', sc = V3.scene;
+  if(V3.world) sc.remove(V3.world);
+  const W = new THREE.Group(); V3.world = W; sc.add(W);
+  const geo = new THREE.PlaneGeometry(220, 160, 70, 50); geo.rotateX(-Math.PI/2);
+  const p = geo.attributes.position;
+  for(let k=0;k<p.count;k++){ const x = p.getX(k), z = p.getZ(k), d = Math.hypot(x, z+4);
+    const hill = d>16 ? (Math.sin(x*0.13)+Math.cos(z*0.17+1))*1.8*Math.min(1,(d-16)/20) + (z<-30 ? (-z-30)*0.12 : 0) : 0;
+    p.setY(k, hill + (Math.sin(x*1.7)*Math.cos(z*1.3))*0.06); }
+  geo.computeVertexNormals();
+  W.add(new THREE.Mesh(geo, M3(moon ? '#8e8e96' : '#b5522c')));
+  // craters and rocks
+  const rockM = M3(moon ? '#6e6e76' : '#7d311a');
+  for(let k=0;k<26;k++){ const a = k*2.4, r = 8 + (k*5.3)%26; const x = Math.cos(a)*r, z = Math.sin(a)*r - 4;
+    if((Math.abs(x)<7 && Math.abs(z)<7) || (z>3 && Math.abs(x)<14)) continue;
+    const s = 0.25 + (k%4)*0.18; const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), rockM); rock.position.set(x, s*0.4, z); rock.rotation.set(k, k*2, 0); W.add(rock); }
+  for(const [x,z,r] of [[12,6,2.2],[-14,8,1.6],[3,-14,3],[-22,-8,2.6],[20,-12,2]]){
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.35, 6, 24), rockM); ring.rotation.x = -Math.PI/2; ring.position.set(x, 0.05, z); ring.scale.z = 0.5; W.add(ring); }
+  // sky things
+  V3.sunMesh = new THREE.Mesh(new THREE.SphereGeometry(4, 20, 14), new THREE.MeshBasicMaterial({color: moon ? '#fffbe0' : '#ffe9a8'}));
+  V3.sunMesh.position.set(-55, 24, -120); W.add(V3.sunMesh);
+  if(moon){
+    const st = new Float32Array(900); for(let k=0;k<300;k++){ const a = Math.random()*Math.PI*2, b = Math.random()*1.2+0.1; st[k*3] = Math.cos(a)*Math.cos(b)*250; st[k*3+1] = Math.sin(b)*250; st[k*3+2] = Math.sin(a)*Math.cos(b)*250; }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(st, 3));
+    W.add(new THREE.Points(sg, new THREE.PointsMaterial({color:'#ffffff', size:1.2, sizeAttenuation:false})));
+    const earth = new THREE.Mesh(new THREE.SphereGeometry(7, 24, 16), new THREE.MeshLambertMaterial({color:'#3d7bd9', emissive:'#10306a'})); earth.position.set(48, 26, -150); W.add(earth);
+    const land = new THREE.Mesh(new THREE.SphereGeometry(7.05, 10, 6), new THREE.MeshLambertMaterial({color:'#4cd37a', emissive:'#104a20', wireframe:true})); land.position.copy(earth.position); W.add(land);
+  }
+  V3.dest = DEST;
+}
+function setLabel3D(i, name, sub, hp){
+  const key = name+'|'+sub+'|'+hp;
+  if(V3.labelKey[i] === key) return;
+  V3.labelKey[i] = key;
+  if(V3.labels[i]){ V3.scene.remove(V3.labels[i]); V3.labels[i].material.map.dispose(); V3.labels[i].material.dispose(); }
+  V3.labels[i] = label3D(name, sub, hp); V3.scene.add(V3.labels[i]);
+}
+function update3D(){
+  if(!V3) init3D();
+  if(V3.dest !== DEST) buildWorld3D();
+  const moon = DEST==='moon', D = V3.dyn, sc = V3.scene;
+  const storm = S.stormSols.includes(S.sol) && !S.over, warn = S.stormSols.includes(S.sol+1) && !S.over, dust = S.dustSols.includes(S.sol) && !S.over;
+  const night = moon && dust;
+  const sky = storm ? (moon ? '#3a0d36' : '#c04fa8') : moon ? (night ? '#020205' : '#0b0b1c') : dust ? '#c98a52' : '#e9a273';
+  sc.background = new THREE.Color(sky);
+  sc.fog = moon ? null : new THREE.Fog(sky, dust ? 18 : 45, dust ? 70 : 170);
+  V3.sunMesh.visible = !night;
+  V3.sunMesh.scale.setScalar(warn||storm ? 1.6 : 1);
+  V3.sunL.intensity = night ? 0.08 : dust ? 0.5 : 0.95;
+  V3.hemi.intensity = night ? 0.18 : moon ? 0.4 : 0.6;
+  V3.lamp.intensity = night ? 1.3 : 0;
+  D.dust.visible = (dust && !moon) || storm;
+  D.dust.material.color.set(storm ? '#ffe6fb' : '#e8c39a');
+  D.panelMat.color.set(dust && !moon ? '#8a6a4a' : '#2d4a8a');
+  D.o2.scale.y = Math.max(0.02, Math.min(1, S.oxy/CONFIG.maxOxy)); D.o2.position.y = 0.1 + 1.05*D.o2.scale.y;
+  const plants = 2 + plan.food*2 + Math.min(4, Math.floor(Math.max(0,S.food)/4));
+  D.plants.forEach((p,k)=>p.visible = k < plants);
+  D.shield.visible = plan.shield>0; D.shield.material.opacity = 0.08*plan.shield;
+  const ex = S.over ? [] : explorers();
+  D.rover.visible = ex.length>0; D.rover.position.set(12, 0, -1.5);
+  D.rocket.visible = rocketToday();
+  const jobs = []; for(let k=0;k<plan.oxy && jobs.length<4;k+=3) jobs.push("🫁"); if(plan.food>0) jobs.push("🥬"); if(plan.shield>0) jobs.push("🛡️");
+  const m = mood();
+  CREW.forEach((c,i)=>{
+    const d = D.dinos[i], out = ex.includes(i), rest = S.resting[i], k = ex.indexOf(i);
+    d.userData.mode = rest ? 'rest' : out ? 'walk' : (m==='sad' ? 'sad' : 'bob');
+    if(rest){ d.position.set(-2.6 + i*0.4, 0.55, -2.2); d.rotation.set(0, 0, Math.PI/2); }
+    else if(out){ d.position.set(6.2 + k*1.6, 0, 1.6 - k*0.5); d.rotation.set(0, 0.3, 0); }
+    else { d.position.set(-2.55 + i*1.7, 0.25, 0.6); d.rotation.set(0, 0, 0); }
+    const act = rest ? "🛏️" : out ? "🔭" : (S.over ? "" : (jobs.shift()||""));
+    setLabel3D(i, (i===LEAD?"⭐ ":"")+c.name, act, S.hp[i]);
+    V3.labels[i].position.set(d.position.x, rest ? 2.0 : d.position.y + 3.3, d.position.z);
+  });
+  // HUD on top of the 3D view
+  let tag = '';
+  if(storm) tag = `<span class="tag st">☢️ ${T("SOLAR STORM!","¡TORMENTA SOLAR!")}</span>`;
+  else if(dust) tag = `<span class="tag du">${moon ? T("🌑 LUNAR NIGHT","🌑 NOCHE LUNAR") : T("🌪️ DUST STORM","🌪️ TORMENTA DE POLVO")}</span>`;
+  if(warn) tag += `<span class="tag st">${T("FLARE! ☀️💥","¡LLAMARADA! ☀️💥")}</span>`;
+  if(rocketToday()) tag += `<span class="tag ok">🚀 ${T("Supplies!","¡Provisiones!")}</span>`;
+  const talkTxt = (TALK && Date.now()<TALK.until) ? `<div class="bubble">${TALK.text}</div>` : (!S.over ? `<div class="hint">${T("👆 Tap a dino to talk · drag to turn","👆 Toca un dino para hablar · arrastra para girar")}</div>` : "");
+  document.getElementById('hud3d').innerHTML = `<div class="day">${T(`Sol ${S.sol}`,`Sol ${S.sol}`)}</div>${tag}
+    <div class="en">⚡ ${energyToday()} ${T("energy","energía")}${sickCount()>0?` · 🩹 −${CONFIG.sickPenalty*sickCount()} ⚡`:""}${plan.shield>0?` · 🛡️ ${plan.shield*25}%`:""}</div>${talkTxt}`;
+  V3.storm = storm;
+}
+function loop3D(now){
+  requestAnimationFrame(loop3D);
+  if(!USE3D || !V3 || document.hidden || document.getElementById('gameView').hidden) return;
+  const t = (now - V3.t0)/1000, D = V3.dyn;
+  const th = V3.theta + (V3.drag ? 0 : Math.sin(t*0.12)*0.12);
+  V3.cam.position.set(Math.sin(th)*15.5 - 0.5, 4.6, Math.cos(th)*15.5);
+  V3.cam.lookAt(-0.5, 2.6, 0);
+  D.dinos.forEach((d,i)=>{ const b = d.userData.body, mode = d.userData.mode;
+    b.position.y = mode==='bob' ? Math.abs(Math.sin(t*2.2+i))*0.12 : mode==='walk' ? Math.abs(Math.sin(t*6+i))*0.18 : 0;
+    b.rotation.z = mode==='walk' ? Math.sin(t*6+i)*0.08 : 0;
+    b.rotation.x = mode==='sad' ? 0.3 : 0; });
+  if(D.rover.visible) D.rover.position.x = 12 + Math.sin(t*0.6)*1.2;
+  if(D.dust.visible){ const p = D.dust.geometry.attributes.position, sp = V3.storm ? 0.0 : 0.12;
+    for(let k=0;k<p.count;k++){ let x = p.getX(k) + sp, y = p.getY(k) - (V3.storm ? 0.25 : 0.01); if(x>30) x -= 60; if(y<0) y += 12; p.setX(k, x); p.setY(k, y); }
+    p.needsUpdate = true; }
+  V3.flash.intensity = V3.storm ? 0.6 + Math.sin(t*8)*0.5 : 0;
+  D.shield.material.opacity = 0.08*plan.shield*(V3.storm ? 1 + Math.sin(t*6)*0.4 : 1);
+  V3.R.render(V3.scene, V3.cam);
+}
+
+try { USE3D = (localStorage.getItem('mars30_3d') || '1') === '1'; } catch(e) { USE3D = true; }
+if(!can3D()) USE3D = false;
 newGame();
 setLang(LANG);
+applyView();
 showIntro();
 </script>
 </body>
